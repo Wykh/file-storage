@@ -5,63 +5,70 @@ import com.example.fileVault.exception.EmptyFileListException;
 import com.example.fileVault.exception.FileNotFoundException;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 public class FileSystemStorageRepo {
 
-    List<FileEntity> fileEntityList = new ArrayList<>();
+    // TODO: use Linked List or better Map
 
-    public UUID create(String name, String type, byte[] content) {
-        UUID randUUID = UUID.randomUUID();
-        fileEntityList.add(new FileEntity() {
-            {
-                setId(randUUID);
-                setName(name);
-                setUploadDate(new Date());
-                setModifiedDate(new Date());
-                setContent(content);
-                setType(type);
-            }
-        });
-        return randUUID;
+    List<FileEntity> fileEntityList = new LinkedList<>();
+
+    public FileEntity create(String name, String type, String comment, byte[] content, long fileSize) {
+        // TODO: use lombok and @Builder -- ok
+
+        FileEntity newFile = FileEntity.builder()
+                .id(UUID.randomUUID())
+                .name(name)
+                .uploadDate(new Date())
+                .modifiedDate(new Date())
+                .comment(comment)
+                .content(content)
+                .size(fileSize)
+                .extension(type)
+                .build();
+
+        // TODO: убрать этот тип инициализации -- ok его тут больше нет
+        fileEntityList.add(newFile);
+        return newFile;
     }
 
-    public List<FileEntity> readAll() throws EmptyFileListException {
+    public List<FileEntity> getAll() {
         if (fileEntityList.size() == 0) {
             throw new EmptyFileListException("File list is empty");
         }
         return fileEntityList;
     }
 
-    public Date updateByUUID(UUID id, String name, String type, byte[] newContent) throws FileNotFoundException {
+    public FileEntity updateByUUID(UUID id, String name, String comment) {
+        // TODO: Do not update content, type -- ok
+
         FileEntity fileToUpdate = findByUUID(id);
-        fileToUpdate.setContent(newContent);
         fileToUpdate.setName(name);
-        fileToUpdate.setType(type);
+        fileToUpdate.setComment(comment);
         fileToUpdate.setModifiedDate(new Date());
-        return fileToUpdate.getModifiedDate();
+        return fileToUpdate;
     }
 
-    public FileEntity findByUUID(UUID uuid) throws FileNotFoundException {
+    // TODO: don't use uuid use id -- ok
+    public FileEntity findByUUID(UUID id) {
         for (FileEntity file :
                 this.fileEntityList) {
+
+            //TODO: use @slf4j from lombok to log
             System.out.println(file.getId());
-            System.out.println(uuid);
+            System.out.println(id);
             System.out.println();
-            if (file.getId().equals(uuid)) {
+            if (file.getId().equals(id)) {
                 return file;
             }
         }
-        throw new FileNotFoundException("file not found by uuid");
+        throw new FileNotFoundException("file not found by id");
     }
 
-    public UUID deleteByUUID(UUID uuid) throws FileNotFoundException {
+    public UUID deleteByUUID(UUID id) {
         for (int i = 0; i < fileEntityList.size(); i++) {
-            if (fileEntityList.get(i).getId().equals(uuid)) {
+            if (fileEntityList.get(i).getId().equals(id)) {
                 UUID deletedUUID = fileEntityList.get(i).getId();
                 fileEntityList.remove(i);
                 return deletedUUID;

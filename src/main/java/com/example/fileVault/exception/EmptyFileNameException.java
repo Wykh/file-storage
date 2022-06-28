@@ -1,6 +1,6 @@
 package com.example.fileVault.exception;
 
-public class EmptyFileNameException extends Exception{
+public class EmptyFileNameException extends RuntimeException{
     public EmptyFileNameException(String message) {
         super(message);
     }
