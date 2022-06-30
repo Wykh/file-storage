@@ -2,14 +2,11 @@ package com.example.fileVault.service;
 
 import com.example.fileVault.entity.FileEntity;
 import com.example.fileVault.exception.*;
-import com.example.fileVault.model.FileModel;
+import com.example.fileVault.model.FileDto;
 import com.example.fileVault.model.FileModelNameAndId;
 import com.example.fileVault.repository.FileSystemStorageRepo;
 import com.example.fileVault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,29 +24,28 @@ public class FileSystemFileService implements FileService {
     private final FileSystemStorageRepo storageRepo;
 
     @Override
-    public FileModel create(MultipartFile file, String comment) {
+    public FileDto create(MultipartFile file, String comment) {
         String fullFileName = file.getOriginalFilename();
         assert fullFileName != null;
         String fileName = FilenameUtils.getNameWithoutExtension(fullFileName);
         String fileExtension = FilenameUtils.getExtension(fullFileName);
-        long fileSize = file.getSize(); // а это вообще нужно передавать в функцию create, если мы можем получить размер из file.getBytes().length?
 
         // Тут .getBytes() кидает IOException, это нормально его в RuntimeException преобразовывать таким образом?
         try {
-            return FileModel.toModel(storageRepo.create(fileName, fileExtension, comment, file.getBytes(), fileSize));
+            return FileDto.toModel(storageRepo.create(fileName, fileExtension, comment, file.getBytes()));
         } catch (IOException e) {
-            throw new CantReadFileContentException(".getBytes() method fails");
+            throw new CantReadFileContentException(".getBytes() method fails", e);
         }
     }
 
     @Override
-    public List<FileModel> getAll() throws EmptyFileListException {
-        return storageRepo.getAll().stream().map(FileModel::toModel).collect(Collectors.toList());
+    public List<FileDto> getAll() throws EmptyFileListException {
+        return storageRepo.getAll().stream().map(FileDto::toModel).collect(Collectors.toList());
     }
 
     @Override
-    public FileModel get(UUID id) throws FileNotFoundException {
-        return FileModel.toModel(storageRepo.findByUUID(id));
+    public FileDto get(UUID id) throws FileNotFoundException {
+        return FileDto.toModel(storageRepo.findByUUID(id));
     }
 
     @Override
@@ -59,15 +55,10 @@ public class FileSystemFileService implements FileService {
 
     // TODO: rid of return Response here -- ok
     @Override
-    public HttpEntity<byte[]> download(UUID id) throws FileNotFoundException {
+    public FileEntity download(UUID id) throws FileNotFoundException {
         // TODO: HttpEntity + Header here -- ok
-        FileEntity fileToDownload = storageRepo.findByUUID(id);
-        String fullFileName = fileToDownload.getName() + '.' + fileToDownload.getExtension();
 
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fullFileName + "\"");
-
-        return new HttpEntity<>(fileToDownload.getContent(), responseHeaders);
+        return storageRepo.findByUUID(id);
     }
 
     @Override
@@ -76,17 +67,17 @@ public class FileSystemFileService implements FileService {
     }
 
     @Override
-    public FileModel update(UUID id, String newFileName, String newComment) {
-        return FileModel.toModel(storageRepo.updateByUUID(id, newFileName, newComment));
+    public FileDto update(UUID id, String newFileName, String newComment) {
+        return FileDto.toModel(storageRepo.updateByUUID(id, newFileName, newComment));
     }
 
     @Override
-    public FileModel delete(UUID id) throws FileNotFoundException {
+    public FileDto delete(UUID id) throws FileNotFoundException {
         // TODO: return DTO without download uri -- ok
-        FileModel deletedModel = FileModel.toModel(storageRepo.findByUUID(id));
+        FileDto deletedModel = FileDto.toModel(storageRepo.findByUUID(id));
         storageRepo.deleteByUUID(id);
         deletedModel.setModifiedDate(new Date());
-        deletedModel.setWebUrl("DELETED");
+        deletedModel.setDownloadUrl("");
         return deletedModel;
     }
 

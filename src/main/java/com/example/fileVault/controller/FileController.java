@@ -1,10 +1,10 @@
 package com.example.fileVault.controller;
 
-import com.example.fileVault.model.FileModel;
+import com.example.fileVault.entity.FileEntity;
+import com.example.fileVault.model.FileDto;
 import com.example.fileVault.model.FileModelNameAndId;
 import com.example.fileVault.service.FileService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +34,12 @@ public class FileController {
     // TODO: использовать lombok чтоб убрать анотации и ещё кое-что -- ok
 
     @GetMapping
-    public ResponseEntity<List<FileModel>> getAllFiles() { // get or find использовать
+    public ResponseEntity<List<FileDto>> getAllFiles() { // get or find использовать
         return ResponseEntity.ok(fileService.getAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<FileModel> getOneFile(@PathVariable UUID id) {
+    public ResponseEntity<FileDto> getOneFile(@PathVariable UUID id) {
         return ResponseEntity.ok(fileService.get(id));
     }
 
@@ -49,31 +49,32 @@ public class FileController {
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable UUID id) {
-        HttpEntity<byte[]> entityToDownload = fileService.download(id);
-        String headerValues = entityToDownload.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION);
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, headerValues).body(entityToDownload.getBody());
+    public HttpEntity<byte[]> downloadFile(@PathVariable UUID id) {
+        FileEntity fileToDownload = fileService.download(id);
+        String fullFileName = fileToDownload.getName() + '.' + fileToDownload.getExtension();
+
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fullFileName + "\"");
+
+        return new HttpEntity<>(fileToDownload.getContent(), responseHeaders);
     }
 
     @PostMapping
-    public ResponseEntity<FileModel> uploadFile(@RequestParam("file") MultipartFile file,
-                                                @RequestParam("comment") String comment) { // прокидывать ещё комментарий к файлу
-        FileModel newModel = fileService.create(file, comment);
-        return ResponseEntity.ok(newModel);
+    public ResponseEntity<FileDto> uploadFile(@RequestParam("file") MultipartFile file,
+                                              @RequestParam("comment") String comment) { // прокидывать ещё комментарий к файлу
+        return ResponseEntity.ok(fileService.create(file, comment));
     }
 
     // TODO: измениять только имя файла и комментарий к файлу -- ok
     @PutMapping("/{id}")
-    public ResponseEntity<FileModel> updateFile(@PathVariable UUID id,
-                                                @RequestParam("name") String newName,
-                                                @RequestParam("comment") String newComment) {
-        FileModel model = fileService.update(id, newName, newComment);
-        return ResponseEntity.ok(model);
+    public ResponseEntity<FileDto> updateFile(@PathVariable UUID id,
+                                              @RequestParam("name") String newName,
+                                              @RequestParam("comment") String newComment) {
+        return ResponseEntity.ok(fileService.update(id, newName, newComment));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<FileModel> deleteFile(@PathVariable UUID id) {
-        FileModel deletedModel = fileService.delete(id);
-        return ResponseEntity.ok(deletedModel);
+    public ResponseEntity<FileDto> deleteFile(@PathVariable UUID id) {
+        return ResponseEntity.ok(fileService.delete(id));
     }
 }

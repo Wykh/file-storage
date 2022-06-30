@@ -11,7 +11,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class FileModel {
+public class FileDto {
     private UUID id;
     private Date uploadDate;
     private Date modifiedDate;
@@ -19,10 +19,10 @@ public class FileModel {
     private String name;
     private Long size;
     private String comment;
-    private String webUrl;
+    private String downloadUrl;
 
-    public static FileModel toModel(FileEntity entity) {
-        return FileModel.builder()
+    public static FileDto toModel(FileEntity entity) {
+        return FileDto.builder()
                 .id(entity.getId())
                 .uploadDate(entity.getUploadDate())
                 .modifiedDate(entity.getModifiedDate())
@@ -30,7 +30,7 @@ public class FileModel {
                 .name(entity.getName())
                 .size(entity.getSize())
                 .comment(entity.getComment())
-                .webUrl("http://localhost:8080/api/file/download/" + entity.getId()).build();
+                .downloadUrl("/api/file/download/" + entity.getId()).build();
     }
 
 }

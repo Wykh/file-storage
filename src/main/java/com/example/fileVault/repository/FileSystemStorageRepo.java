@@ -14,7 +14,7 @@ public class FileSystemStorageRepo {
 
     List<FileEntity> fileEntityList = new LinkedList<>();
 
-    public FileEntity create(String name, String type, String comment, byte[] content, long fileSize) {
+    public FileEntity create(String name, String type, String comment, byte[] content) {
         // TODO: use lombok and @Builder -- ok
 
         FileEntity newFile = FileEntity.builder()
@@ -24,7 +24,7 @@ public class FileSystemStorageRepo {
                 .modifiedDate(new Date())
                 .comment(comment)
                 .content(content)
-                .size(fileSize)
+                .size(content.length)
                 .extension(type)
                 .build();
 
@@ -67,13 +67,8 @@ public class FileSystemStorageRepo {
     }
 
     public UUID deleteByUUID(UUID id) {
-        for (int i = 0; i < fileEntityList.size(); i++) {
-            if (fileEntityList.get(i).getId().equals(id)) {
-                UUID deletedUUID = fileEntityList.get(i).getId();
-                fileEntityList.remove(i);
-                return deletedUUID;
-            }
-        }
+        if (fileEntityList.removeIf(entity -> entity.getId().equals(id)))
+            return id;
         throw new FileNotFoundException("Nothing to delete");
     }
 
