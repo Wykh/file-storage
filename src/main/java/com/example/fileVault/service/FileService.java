@@ -1,8 +1,8 @@
 package com.example.fileVault.service;
 
 import com.example.fileVault.entity.FileEntity;
-import com.example.fileVault.model.FileDto;
-import com.example.fileVault.model.FileModelNameAndId;
+import com.example.fileVault.dto.FileDto;
+import com.example.fileVault.dto.FileNameById;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,5 +25,5 @@ public interface FileService {
 
     public FileDto delete(UUID id);
 
-    List<FileModelNameAndId> getNamesAndIds();
+    List<FileNameById> getNamesById();
 }

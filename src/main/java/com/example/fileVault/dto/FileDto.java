@@ -1,4 +1,4 @@
-package com.example.fileVault.model;
+package com.example.fileVault.dto;
 
 import com.example.fileVault.entity.FileEntity;
 import lombok.Builder;
@@ -21,7 +21,7 @@ public class FileDto {
     private String comment;
     private String downloadUrl;
 
-    public static FileDto toModel(FileEntity entity) {
+    public static FileDto toDTO(FileEntity entity) {
         return FileDto.builder()
                 .id(entity.getId())
                 .uploadDate(entity.getUploadDate())
@@ -32,5 +32,4 @@ public class FileDto {
                 .comment(entity.getComment())
                 .downloadUrl("/api/file/download/" + entity.getId()).build();
     }
-
 }

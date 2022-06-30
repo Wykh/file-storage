@@ -2,8 +2,8 @@ package com.example.fileVault.service;
 
 import com.example.fileVault.entity.FileEntity;
 import com.example.fileVault.exception.*;
-import com.example.fileVault.model.FileDto;
-import com.example.fileVault.model.FileModelNameAndId;
+import com.example.fileVault.dto.FileDto;
+import com.example.fileVault.dto.FileNameById;
 import com.example.fileVault.repository.FileSystemStorageRepo;
 import com.example.fileVault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class FileSystemFileService implements FileService {
 
         // Тут .getBytes() кидает IOException, это нормально его в RuntimeException преобразовывать таким образом?
         try {
-            return FileDto.toModel(storageRepo.create(fileName, fileExtension, comment, file.getBytes()));
+            return FileDto.toDTO(storageRepo.create(fileName, fileExtension, comment, file.getBytes()));
         } catch (IOException e) {
             throw new CantReadFileContentException(".getBytes() method fails", e);
         }
@@ -40,17 +40,17 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public List<FileDto> getAll() throws EmptyFileListException {
-        return storageRepo.getAll().stream().map(FileDto::toModel).collect(Collectors.toList());
+        return storageRepo.getAll().stream().map(FileDto::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public FileDto get(UUID id) throws FileNotFoundException {
-        return FileDto.toModel(storageRepo.findByUUID(id));
+        return FileDto.toDTO(storageRepo.findByUUID(id));
     }
 
     @Override
-    public List<FileModelNameAndId> getNamesAndIds() {
-        return storageRepo.getAll().stream().map(FileModelNameAndId::toModel).collect(Collectors.toList());
+    public List<FileNameById> getNamesById() {
+        return storageRepo.getAll().stream().map(FileNameById::toDTO).collect(Collectors.toList());
     }
 
     // TODO: rid of return Response here -- ok
@@ -68,13 +68,13 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public FileDto update(UUID id, String newFileName, String newComment) {
-        return FileDto.toModel(storageRepo.updateByUUID(id, newFileName, newComment));
+        return FileDto.toDTO(storageRepo.updateByUUID(id, newFileName, newComment));
     }
 
     @Override
     public FileDto delete(UUID id) throws FileNotFoundException {
         // TODO: return DTO without download uri -- ok
-        FileDto deletedModel = FileDto.toModel(storageRepo.findByUUID(id));
+        FileDto deletedModel = FileDto.toDTO(storageRepo.findByUUID(id));
         storageRepo.deleteByUUID(id);
         deletedModel.setModifiedDate(new Date());
         deletedModel.setDownloadUrl("");

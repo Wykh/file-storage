@@ -29,4 +29,8 @@ public class FilenameUtils {
 
         return fullFileName.substring(dotIndex + 1);
     }
+
+    public static String getFullFileName(String fileName, String fileExtension) {
+        return fileName + "." + fileExtension;
+    }
 }

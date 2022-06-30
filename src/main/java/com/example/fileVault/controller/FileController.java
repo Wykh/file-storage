@@ -1,8 +1,8 @@
 package com.example.fileVault.controller;
 
 import com.example.fileVault.entity.FileEntity;
-import com.example.fileVault.model.FileDto;
-import com.example.fileVault.model.FileModelNameAndId;
+import com.example.fileVault.dto.FileDto;
+import com.example.fileVault.dto.FileNameById;
 import com.example.fileVault.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
@@ -44,8 +44,8 @@ public class FileController {
     }
 
     @GetMapping("/name")
-    public ResponseEntity<List<FileModelNameAndId>> getNamesAndIds() {
-        return ResponseEntity.ok(fileService.getNamesAndIds());
+    public ResponseEntity<List<FileNameById>> getNamesById() {
+        return ResponseEntity.ok(fileService.getNamesById());
     }
 
     @GetMapping("/download/{id}")
