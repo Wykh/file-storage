@@ -21,4 +21,9 @@ public class WebRestControllerAdvice {
     public ResponseEntity<String> handleEmptyFileListException(Exception e) {
         return ResponseEntity.badRequest().body("Error reading all files: " + e.getMessage());
     }
+
+    @ExceptionHandler(TooLargeFileSizeException.class)
+    public ResponseEntity<String> handleTooLargeFileSizeException(Exception e) {
+        return  ResponseEntity.badRequest().body(e.getMessage());
+    }
 }

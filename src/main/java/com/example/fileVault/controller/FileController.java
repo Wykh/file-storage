@@ -50,7 +50,7 @@ public class FileController {
     @PostMapping
     public ResponseEntity<FileDto> uploadFile(@RequestParam("file") MultipartFile file,
                                               @RequestParam("comment") String comment) { // прокидывать ещё комментарий к файлу
-        return ResponseEntity.ok(fileService.create(file, comment));
+        return ResponseEntity.ok(fileService.upload(file, comment));
     }
 
     @PutMapping("/{id}")

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface FileService {
 
-    FileDto create(MultipartFile file, String comment);
+    FileDto upload(MultipartFile file, String comment);
 
     List<FileDto> getAll();
 

@@ -6,6 +6,7 @@ import com.example.fileVault.entity.FileEntity;
 import com.example.fileVault.exception.CantReadFileContentException;
 import com.example.fileVault.exception.EmptyFileListException;
 import com.example.fileVault.exception.FileNotFoundException;
+import com.example.fileVault.exception.TooLargeFileSizeException;
 import com.example.fileVault.repository.FileSystemStorageRepository;
 import com.example.fileVault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.TooManyListenersException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -24,9 +26,13 @@ import java.util.stream.Collectors;
 public class FileSystemFileService implements FileService {
 
     private final FileSystemStorageRepository fileRepository;
+    private final int MAX_FILE_SIZE_MB = 15;
 
     @Override
-    public FileDto create(MultipartFile file, String comment) {
+    public FileDto upload(MultipartFile file, String comment) {
+        if (file.getSize() * 0.00000095367432  >= MAX_FILE_SIZE_MB)
+            throw new TooLargeFileSizeException("File Size Cant be more than " + MAX_FILE_SIZE_MB + "MB");
+
         String fullFileName = file.getOriginalFilename();
         String fileName = FilenameUtils.getNameWithoutExtension(fullFileName);
         String fileExtension = FilenameUtils.getExtension(fullFileName);
