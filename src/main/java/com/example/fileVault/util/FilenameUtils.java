@@ -2,13 +2,15 @@ package com.example.fileVault.util;
 
 import com.example.fileVault.exception.BadFileTypeException;
 import com.example.fileVault.exception.EmptyFileNameException;
+import com.google.common.base.Strings;
+import org.springframework.util.StringUtils;
 
 // Class FilenameUtils in commons.apache.org
 public class FilenameUtils {
 
     private static int getLastPointIndexWithErrorChecking(String fullFileName) {
-        if (fullFileName.length() == 0) {
-            throw new EmptyFileNameException("File name is empty");
+        if (Strings.isNullOrEmpty(fullFileName)) {
+            throw new EmptyFileNameException("File name is empty or null");
         }
 
         int dotIndex = fullFileName.lastIndexOf('.');

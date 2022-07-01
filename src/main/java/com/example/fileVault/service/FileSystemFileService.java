@@ -4,7 +4,7 @@ import com.example.fileVault.entity.FileEntity;
 import com.example.fileVault.exception.*;
 import com.example.fileVault.dto.FileDto;
 import com.example.fileVault.dto.FileNameById;
-import com.example.fileVault.repository.FileSystemStorageRepo;
+import com.example.fileVault.repository.FileSystemStorageRepository;
 import com.example.fileVault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,18 +21,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FileSystemFileService implements FileService {
 
-    private final FileSystemStorageRepo storageRepo;
+    private final FileSystemStorageRepository fileRepository;
 
     @Override
     public FileDto create(MultipartFile file, String comment) {
         String fullFileName = file.getOriginalFilename();
-        assert fullFileName != null;
         String fileName = FilenameUtils.getNameWithoutExtension(fullFileName);
         String fileExtension = FilenameUtils.getExtension(fullFileName);
 
         // Тут .getBytes() кидает IOException, это нормально его в RuntimeException преобразовывать таким образом?
         try {
-            return FileDto.toDTO(storageRepo.create(fileName, fileExtension, comment, file.getBytes()));
+            return FileDto.of(fileRepository.create(fileName, fileExtension, comment, file.getBytes()));
         } catch (IOException e) {
             throw new CantReadFileContentException(".getBytes() method fails", e);
         }
@@ -40,17 +39,17 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public List<FileDto> getAll() throws EmptyFileListException {
-        return storageRepo.getAll().stream().map(FileDto::toDTO).collect(Collectors.toList());
+        return fileRepository.getAll().stream().map(FileDto::of).collect(Collectors.toList());
     }
 
     @Override
-    public FileDto get(UUID id) throws FileNotFoundException {
-        return FileDto.toDTO(storageRepo.findByUUID(id));
+    public FileDto get(UUID id) {
+        return FileDto.of(fileRepository.findById(id));
     }
 
     @Override
     public List<FileNameById> getNamesById() {
-        return storageRepo.getAll().stream().map(FileNameById::toDTO).collect(Collectors.toList());
+        return fileRepository.getAll().stream().map(FileNameById::toDTO).collect(Collectors.toList());
     }
 
     // TODO: rid of return Response here -- ok
@@ -58,7 +57,7 @@ public class FileSystemFileService implements FileService {
     public FileEntity download(UUID id) throws FileNotFoundException {
         // TODO: HttpEntity + Header here -- ok
 
-        return storageRepo.findByUUID(id);
+        return fileRepository.findById(id);
     }
 
     @Override
@@ -68,14 +67,14 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public FileDto update(UUID id, String newFileName, String newComment) {
-        return FileDto.toDTO(storageRepo.updateByUUID(id, newFileName, newComment));
+        return FileDto.of(fileRepository.updateById(id, newFileName, newComment));
     }
 
     @Override
     public FileDto delete(UUID id) throws FileNotFoundException {
         // TODO: return DTO without download uri -- ok
-        FileDto deletedModel = FileDto.toDTO(storageRepo.findByUUID(id));
-        storageRepo.deleteByUUID(id);
+        FileDto deletedModel = FileDto.of(fileRepository.findById(id));
+        fileRepository.deleteById(id);
         deletedModel.setModifiedDate(new Date());
         deletedModel.setDownloadUrl("");
         return deletedModel;

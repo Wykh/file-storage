@@ -8,14 +8,12 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class FileNameById {
     private UUID id;
     private String name;
 
     public static FileNameById toDTO(FileEntity file) {
-        FileNameById newModel = new FileNameById();
-        newModel.setId(file.getId());
-        newModel.setName(file.getName());
-        return newModel;
+        return new FileNameById(file.getId(), file.getName());
     }
 }

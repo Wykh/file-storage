@@ -21,7 +21,7 @@ public class FileDto {
     private String comment;
     private String downloadUrl;
 
-    public static FileDto toDTO(FileEntity entity) {
+    public static FileDto of(FileEntity entity) {
         return FileDto.builder()
                 .id(entity.getId())
                 .uploadDate(entity.getUploadDate())

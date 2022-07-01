@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
-public class FileSystemStorageRepo {
+public class FileSystemStorageRepository {
 
     // TODO: use Linked List or better Map
 
-    List<FileEntity> fileEntityList = new LinkedList<>();
+    private final List<FileEntity> fileEntityList = new LinkedList<>();
 
     public FileEntity create(String name, String type, String comment, byte[] content) {
         // TODO: use lombok and @Builder -- ok
@@ -40,10 +40,10 @@ public class FileSystemStorageRepo {
         return fileEntityList;
     }
 
-    public FileEntity updateByUUID(UUID id, String name, String comment) {
+    public FileEntity updateById(UUID id, String name, String comment) {
         // TODO: Do not update content, type -- ok
 
-        FileEntity fileToUpdate = findByUUID(id);
+        FileEntity fileToUpdate = findById(id);
         fileToUpdate.setName(name);
         fileToUpdate.setComment(comment);
         fileToUpdate.setModifiedDate(new Date());
@@ -51,7 +51,7 @@ public class FileSystemStorageRepo {
     }
 
     // TODO: don't use uuid use id -- ok
-    public FileEntity findByUUID(UUID id) {
+    public FileEntity findById(UUID id) {
         for (FileEntity file :
                 this.fileEntityList) {
 
@@ -66,7 +66,7 @@ public class FileSystemStorageRepo {
         throw new FileNotFoundException("file not found by id");
     }
 
-    public UUID deleteByUUID(UUID id) {
+    public UUID deleteById(UUID id) {
         if (fileEntityList.removeIf(entity -> entity.getId().equals(id)))
             return id;
         throw new FileNotFoundException("Nothing to delete");

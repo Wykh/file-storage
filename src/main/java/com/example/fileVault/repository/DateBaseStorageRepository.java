@@ -1,5 +1,5 @@
 package com.example.fileVault.repository;
 
-public class DateBaseStorageRepo {
+public class DateBaseStorageRepository {
     // TODO: in 3 part
 }

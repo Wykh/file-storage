@@ -11,19 +11,19 @@ import java.util.UUID;
 
 public interface FileService {
 
-    public FileDto create(MultipartFile file, String comment);
+    FileDto create(MultipartFile file, String comment);
 
-    public List<FileDto> getAll();
+    List<FileDto> getAll();
 
-    public FileDto get(UUID id);
+    FileDto get(UUID id);
 
-    public FileEntity download(UUID id);
+    FileEntity download(UUID id);
 
-    public ResponseEntity<?> downloadZipBunch(UUID id);
+    ResponseEntity<?> downloadZipBunch(UUID id);
 
     FileDto update(UUID id, String newFileName, String newComment);
 
-    public FileDto delete(UUID id);
+    FileDto delete(UUID id);
 
     List<FileNameById> getNamesById();
 }
