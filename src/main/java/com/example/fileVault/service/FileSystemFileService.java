@@ -31,7 +31,6 @@ public class FileSystemFileService implements FileService {
         String fileName = FilenameUtils.getNameWithoutExtension(fullFileName);
         String fileExtension = FilenameUtils.getExtension(fullFileName);
 
-        // Тут .getBytes() кидает IOException, это нормально его в RuntimeException преобразовывать таким образом?
         try {
             return FileDto.of(fileRepository.create(fileName, fileExtension, comment, file.getBytes()));
         } catch (IOException e) {
@@ -54,11 +53,8 @@ public class FileSystemFileService implements FileService {
         return fileRepository.getAll().values().stream().map(FileNameById::toDTO).collect(Collectors.toList());
     }
 
-    // TODO: rid of return Response here -- ok
     @Override
     public FileEntity download(UUID id) throws FileNotFoundException {
-        // TODO: HttpEntity + Header here -- ok
-
         return fileRepository.findById(id);
     }
 
@@ -74,16 +70,9 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public FileDto delete(UUID id) throws FileNotFoundException {
-        // TODO: return DTO without download uri -- ok
         FileDto deletedModel = FileDto.of(fileRepository.deleteById(id));
         deletedModel.setModifiedDate(new Date());
         deletedModel.setDownloadUrl("");
         return deletedModel;
     }
-
-
-    // TODO: split into two functions -- ok
-    // TODO: pass to utils -- ok
-
-
 }

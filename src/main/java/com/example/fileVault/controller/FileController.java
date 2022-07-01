@@ -16,22 +16,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/file")
-@RequiredArgsConstructor // почему это работает, ведь вроде для работы Depencency Injection нужно всегда указывать @AutoWired даже над конструкторами
-                         // а в сгенерированном конструкторе этой @Autowired не будет!
+@RequiredArgsConstructor
 public class FileController {
 
     public final FileService fileService;
-
-    // TODO: /api начало -- ok
-    // TODO: /file - в единственном числе -- ok
-    // TODO: Ошибки -- ok
-    // Ошибки наследовать от RuntimeException
-    // Ловить их ExceptionHandler и RestControllerAdvice
-
-    // TODO: возвращать именя файло в и ID в отдельном методе /file/name -- ok
-    // TODO: не возвращать конент файла -- ok
-    // TODO: возвращать ссылку, но не захардкоженную -- нет
-    // TODO: использовать lombok чтоб убрать анотации и ещё кое-что -- ok
 
     @GetMapping
     public ResponseEntity<List<FileDto>> getAllFiles() { // get or find использовать
@@ -65,7 +53,6 @@ public class FileController {
         return ResponseEntity.ok(fileService.create(file, comment));
     }
 
-    // TODO: измениять только имя файла и комментарий к файлу -- ok
     @PutMapping("/{id}")
     public ResponseEntity<FileDto> updateFile(@PathVariable UUID id,
                                               @RequestParam("name") String newName,

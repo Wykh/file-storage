@@ -13,13 +13,9 @@ import java.util.UUID;
 @Component
 public class FileSystemStorageRepository {
 
-    // TODO: use Linked List or better Map -- ok
-
     private final Map<UUID, FileEntity> fileEntityMap = new HashMap<>();
 
     public FileEntity create(String name, String type, String comment, byte[] content) {
-        // TODO: use lombok and @Builder -- ok
-
         FileEntity newFile = FileEntity.builder()
                 .id(UUID.randomUUID())
                 .name(name)
@@ -31,7 +27,6 @@ public class FileSystemStorageRepository {
                 .extension(type)
                 .build();
 
-        // TODO: убрать этот тип инициализации -- ok его тут больше нет
         fileEntityMap.put(newFile.getId(), newFile);
         return newFile;
     }
@@ -44,8 +39,6 @@ public class FileSystemStorageRepository {
     }
 
     public FileEntity updateById(UUID id, String name, String comment) {
-        // TODO: Do not update content, type -- ok
-
         FileEntity fileToUpdate = findById(id);
         fileToUpdate.setName(name);
         fileToUpdate.setComment(comment);
@@ -53,7 +46,6 @@ public class FileSystemStorageRepository {
         return fileToUpdate;
     }
 
-    // TODO: don't use uuid use id -- ok
     public FileEntity findById(UUID id) {
         FileEntity fileToUpdate = fileEntityMap.get(id);
         if (fileToUpdate == null) {
