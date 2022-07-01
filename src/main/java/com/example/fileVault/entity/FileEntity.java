@@ -17,5 +17,4 @@ public class FileEntity {
     private byte[] content;
     private long size;
     private String comment;
-
 }

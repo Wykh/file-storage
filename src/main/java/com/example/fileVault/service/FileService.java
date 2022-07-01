@@ -3,7 +3,6 @@ package com.example.fileVault.service;
 import com.example.fileVault.entity.FileEntity;
 import com.example.fileVault.dto.FileDto;
 import com.example.fileVault.dto.FileNameById;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -15,11 +14,11 @@ public interface FileService {
 
     List<FileDto> getAll();
 
-    FileDto get(UUID id);
+    FileDto getDTO(UUID id);
 
-    FileEntity download(UUID id);
+    FileEntity getEntity(UUID id);
 
-    ResponseEntity<?> downloadZipBunch(UUID id);
+    byte[] downloadZip(List<UUID> id);
 
     FileDto update(UUID id, String newFileName, String newComment);
 

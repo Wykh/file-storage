@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class WebRestControllerAdvice {
-    @ExceptionHandler( FileNotFoundException.class)
+    @ExceptionHandler({FileNotFoundException.class,
+                      CloseStreamException.class, PutNextEntryToZipException.class,
+                      ReadWriteStreamException.class})
     public ResponseEntity<String> handleNotFoundException(Exception e) {
         return ResponseEntity.badRequest().body(e.getMessage());
     }

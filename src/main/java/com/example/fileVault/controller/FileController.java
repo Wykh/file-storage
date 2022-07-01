@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,7 +29,7 @@ public class FileController {
 
     @GetMapping("/{id}")
     public ResponseEntity<FileDto> getOneFile(@PathVariable UUID id) {
-        return ResponseEntity.ok(fileService.get(id));
+        return ResponseEntity.ok(fileService.getDTO(id));
     }
 
     @GetMapping("/name")
@@ -38,13 +39,23 @@ public class FileController {
 
     @GetMapping("/download/{id}")
     public HttpEntity<byte[]> downloadFile(@PathVariable UUID id) {
-        FileEntity fileToDownload = fileService.download(id);
+        FileEntity fileToDownload = fileService.getEntity(id);
         String fullFileName = fileToDownload.getName() + '.' + fileToDownload.getExtension();
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fullFileName + "\"");
 
         return new HttpEntity<>(fileToDownload.getContent(), responseHeaders);
+    }
+
+    @GetMapping("/download/zip")
+    public HttpEntity<byte[]> downloadZip(@RequestParam List<UUID> ids) {
+        byte[] zipContent = fileService.downloadZip(ids);
+
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=attachments.zip");
+
+        return new HttpEntity<>(zipContent, responseHeaders);
     }
 
     @PostMapping
