@@ -1,9 +1,11 @@
 package com.example.fileVault.service;
 
-import com.example.fileVault.entity.FileEntity;
-import com.example.fileVault.exception.*;
 import com.example.fileVault.dto.FileDto;
 import com.example.fileVault.dto.FileNameById;
+import com.example.fileVault.entity.FileEntity;
+import com.example.fileVault.exception.CantReadFileContentException;
+import com.example.fileVault.exception.EmptyFileListException;
+import com.example.fileVault.exception.FileNotFoundException;
 import com.example.fileVault.repository.FileSystemStorageRepository;
 import com.example.fileVault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +41,7 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public List<FileDto> getAll() throws EmptyFileListException {
-        return fileRepository.getAll().stream().map(FileDto::of).collect(Collectors.toList());
+        return fileRepository.getAll().values().stream().map(FileDto::of).collect(Collectors.toList());
     }
 
     @Override
@@ -49,7 +51,7 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public List<FileNameById> getNamesById() {
-        return fileRepository.getAll().stream().map(FileNameById::toDTO).collect(Collectors.toList());
+        return fileRepository.getAll().values().stream().map(FileNameById::toDTO).collect(Collectors.toList());
     }
 
     // TODO: rid of return Response here -- ok
@@ -73,13 +75,11 @@ public class FileSystemFileService implements FileService {
     @Override
     public FileDto delete(UUID id) throws FileNotFoundException {
         // TODO: return DTO without download uri -- ok
-        FileDto deletedModel = FileDto.of(fileRepository.findById(id));
-        fileRepository.deleteById(id);
+        FileDto deletedModel = FileDto.of(fileRepository.deleteById(id));
         deletedModel.setModifiedDate(new Date());
         deletedModel.setDownloadUrl("");
         return deletedModel;
     }
-
 
 
     // TODO: split into two functions -- ok

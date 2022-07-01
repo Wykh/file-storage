@@ -5,14 +5,17 @@ import com.example.fileVault.exception.EmptyFileListException;
 import com.example.fileVault.exception.FileNotFoundException;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class FileSystemStorageRepository {
 
-    // TODO: use Linked List or better Map
+    // TODO: use Linked List or better Map -- ok
 
-    private final List<FileEntity> fileEntityList = new LinkedList<>();
+    private final Map<UUID, FileEntity> fileEntityMap = new HashMap<>();
 
     public FileEntity create(String name, String type, String comment, byte[] content) {
         // TODO: use lombok and @Builder -- ok
@@ -29,15 +32,15 @@ public class FileSystemStorageRepository {
                 .build();
 
         // TODO: убрать этот тип инициализации -- ok его тут больше нет
-        fileEntityList.add(newFile);
+        fileEntityMap.put(newFile.getId(), newFile);
         return newFile;
     }
 
-    public List<FileEntity> getAll() {
-        if (fileEntityList.size() == 0) {
-            throw new EmptyFileListException("File list is empty");
+    public Map<UUID, FileEntity> getAll() {
+        if (fileEntityMap.size() == 0) {
+            throw new EmptyFileListException("File map is empty");
         }
-        return fileEntityList;
+        return fileEntityMap;
     }
 
     public FileEntity updateById(UUID id, String name, String comment) {
@@ -52,24 +55,17 @@ public class FileSystemStorageRepository {
 
     // TODO: don't use uuid use id -- ok
     public FileEntity findById(UUID id) {
-        for (FileEntity file :
-                this.fileEntityList) {
-
-            //TODO: use @slf4j from lombok to log
-            System.out.println(file.getId());
-            System.out.println(id);
-            System.out.println();
-            if (file.getId().equals(id)) {
-                return file;
-            }
+        FileEntity fileToUpdate = fileEntityMap.get(id);
+        if (fileToUpdate == null) {
+            throw new FileNotFoundException("file not found by id");
         }
-        throw new FileNotFoundException("file not found by id");
+        return fileToUpdate;
     }
 
-    public UUID deleteById(UUID id) {
-        if (fileEntityList.removeIf(entity -> entity.getId().equals(id)))
-            return id;
-        throw new FileNotFoundException("Nothing to delete");
+    public FileEntity deleteById(UUID id) {
+        FileEntity deletedEntity = fileEntityMap.remove(id);
+        if (deletedEntity == null)
+            throw new FileNotFoundException("Id to delete not found");
+        return deletedEntity;
     }
-
 }
