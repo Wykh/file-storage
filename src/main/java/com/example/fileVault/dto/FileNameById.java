@@ -7,7 +7,6 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class FileNameById {
     private UUID id;
