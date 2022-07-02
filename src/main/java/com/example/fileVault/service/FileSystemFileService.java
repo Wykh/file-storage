@@ -4,7 +4,6 @@ import com.example.fileVault.dto.FileDto;
 import com.example.fileVault.dto.FileNameById;
 import com.example.fileVault.entity.FileEntity;
 import com.example.fileVault.exception.CantReadFileContentException;
-import com.example.fileVault.exception.CloseStreamException;
 import com.example.fileVault.exception.FileNotFoundException;
 import com.example.fileVault.exception.TooLargeFileSizeException;
 import com.example.fileVault.repository.FileSystemStorageRepository;
@@ -57,6 +56,38 @@ public class FileSystemFileService implements FileService {
     @Override
     public List<FileNameById> getNamesById() {
         return fileRepository.getAll().values().stream().map(FileNameById::toDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FileDto> getFilesFilteredByName(String mask) {
+        return fileRepository.getAll().values().stream()
+                .map(FileDto::of)
+                .filter(entity -> entity.getName().toLowerCase().contains(mask.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FileDto> getFilesFilteredByModifiedDateRange(Date fromDate, Date toDate) {
+        return fileRepository.getAll().values().stream()
+                .map(FileDto::of)
+                .filter(entity -> entity.getModifiedDate().after(fromDate) && entity.getModifiedDate().before(toDate))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FileDto> getFilesFilteredByUploadDateRange(Date fromDate, Date toDate) {
+        return fileRepository.getAll().values().stream()
+                .map(FileDto::of)
+                .filter(entity -> entity.getUploadDate().after(fromDate) && entity.getUploadDate().before(toDate))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FileDto> getFilesFilteredByExtensions(List<String> extensions) {
+        return fileRepository.getAll().values().stream()
+                .map(FileDto::of)
+                .filter(entity -> extensions.contains(entity.getExtension()))
+                .collect(Collectors.toList());
     }
 
     @Override

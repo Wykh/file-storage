@@ -5,6 +5,7 @@ import com.example.fileVault.dto.FileDto;
 import com.example.fileVault.dto.FileNameById;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,4 +26,11 @@ public interface FileService {
     FileDto delete(UUID id);
 
     List<FileNameById> getNamesById();
+
+    List<FileDto> getFilesFilteredByName(String mask);
+
+    List<FileDto> getFilesFilteredByModifiedDateRange(Date fromDate, Date toDate);
+    List<FileDto> getFilesFilteredByUploadDateRange(Date fromDate, Date toDate);
+
+    List<FileDto> getFilesFilteredByExtensions(List<String> extensions);
 }

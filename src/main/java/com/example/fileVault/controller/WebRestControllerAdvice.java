@@ -8,8 +8,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class WebRestControllerAdvice {
     @ExceptionHandler({FileNotFoundException.class,
-                      CloseStreamException.class, PutNextEntryToZipException.class,
-                      ReadWriteStreamException.class})
+            CloseStreamException.class, PutNextEntryToZipException.class,
+            ReadWriteStreamException.class,
+            IncorrectFilterParamException.class,
+            EmptyGetParamException.class,
+            IncorrectDateTypeFilterParamException.class})
     public ResponseEntity<String> handleNotFoundException(Exception e) {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
@@ -26,6 +29,6 @@ public class WebRestControllerAdvice {
 
     @ExceptionHandler(TooLargeFileSizeException.class)
     public ResponseEntity<String> handleTooLargeFileSizeException(Exception e) {
-        return  ResponseEntity.badRequest().body(e.getMessage());
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
 }
