@@ -9,7 +9,7 @@
 # File Vault v0.2
 1. Используется lombok: @Builder, конструкторы всякие, @Getter @Setter
 2. Добавлен новый эндпоинт для возврата только имён и id'шников хранящихся элементов
-3. Добавлен обработчик ощибок с помощью @ExceptionHandler и @RestControllerAdvice
+3. Добавлен обработчик ошибок с помощью @ExceptionHandler и @RestControllerAdvice
 4. Сигнатуры большинства методов были изменены
 
 # File Vault v0.3
