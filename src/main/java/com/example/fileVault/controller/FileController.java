@@ -1,5 +1,6 @@
 package com.example.fileVault.controller;
 
+import com.example.fileVault.constants.FileVaultConstants;
 import com.example.fileVault.entity.FileEntity;
 import com.example.fileVault.dto.FileDto;
 import com.example.fileVault.dto.FileNameById;
@@ -86,7 +87,7 @@ public class FileController {
         String fullFileName = fileToDownload.getName() + '.' + fileToDownload.getExtension();
 
         HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fullFileName + "\"");
+        responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fullFileName);
 
         return new HttpEntity<>(fileToDownload.getContent(), responseHeaders);
     }
@@ -96,7 +97,7 @@ public class FileController {
         byte[] zipContent = fileService.downloadZip(ids);
 
         HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=attachments.zip");
+        responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + FileVaultConstants.ZIP_NAME);
 
         return new HttpEntity<>(zipContent, responseHeaders);
     }

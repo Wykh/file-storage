@@ -1,5 +1,6 @@
 package com.example.fileVault.service;
 
+import com.example.fileVault.constants.FileVaultConstants;
 import com.example.fileVault.dto.FileDto;
 import com.example.fileVault.dto.FileNameById;
 import com.example.fileVault.entity.FileEntity;
@@ -7,6 +8,7 @@ import com.example.fileVault.exception.CantReadFileContentException;
 import com.example.fileVault.exception.FileNotFoundException;
 import com.example.fileVault.exception.TooLargeFileSizeException;
 import com.example.fileVault.repository.FileSystemStorageRepository;
+import com.example.fileVault.util.FileSizeUtils;
 import com.example.fileVault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,12 +27,11 @@ import java.util.zip.ZipOutputStream;
 public class FileSystemFileService implements FileService {
 
     private final FileSystemStorageRepository fileRepository;
-    private final int MAX_FILE_SIZE_MB = 15;
 
     @Override
     public FileDto upload(MultipartFile file, String comment) {
-        if (file.getSize() * 0.00000095367432 >= MAX_FILE_SIZE_MB)
-            throw new TooLargeFileSizeException("File Size Cant be more than " + MAX_FILE_SIZE_MB + "MB");
+        if (FileSizeUtils.toMB(file.getSize()) >= FileVaultConstants.MAX_FILE_SIZE_MB)
+            throw new TooLargeFileSizeException("File Size Cant be more than " + FileVaultConstants.MAX_FILE_SIZE_MB + "MB");
 
         String fullFileName = file.getOriginalFilename();
         String fileName = FilenameUtils.getNameWithoutExtension(fullFileName);
@@ -97,27 +98,29 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public byte[] downloadZip(List<UUID> ids) {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ZipOutputStream zipOut = new ZipOutputStream(bos);) {
-            zipOut.setLevel(ZipOutputStream.STORED);
+        byte[] result;
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();) {
+            try (ZipOutputStream zipOut = new ZipOutputStream(bos);) {
+                zipOut.setLevel(ZipOutputStream.STORED);
 
-            Set<String> names = new HashSet<>();
-            for (UUID id : ids) {
-                FileEntity fileToDownload = getEntity(id);
+                Set<String> names = new HashSet<>();
+                for (UUID id : ids) {
+                    FileEntity fileToDownload = getEntity(id);
 
-                String fullFileName = fileToDownload.getName() + '.' + fileToDownload.getExtension();
-                int count = 0;
-                while (names.contains(fullFileName)) {
-                    fullFileName = fileToDownload.getName() + "_" + ++count + '.' + fileToDownload.getExtension();
-                }
-                names.add(fullFileName);
+                    String fullFileName = fileToDownload.getName() + '.' + fileToDownload.getExtension();
+                    int count = 0;
+                    while (names.contains(fullFileName)) {
+                        fullFileName = fileToDownload.getName() + "_" + ++count + '.' + fileToDownload.getExtension();
+                    }
+                    names.add(fullFileName);
 
-                zipOut.putNextEntry(new ZipEntry(fullFileName));
-                try (ByteArrayInputStream bis = new ByteArrayInputStream(fileToDownload.getContent());) {
-                    byte[] bytes = new byte[1024];
-                    int length;
-                    while ((length = bis.read(bytes)) >= 0) {
-                        zipOut.write(bytes, 0, length);
+                    zipOut.putNextEntry(new ZipEntry(fullFileName));
+                    try (ByteArrayInputStream bis = new ByteArrayInputStream(fileToDownload.getContent());) {
+                        byte[] bytes = new byte[1024];
+                        int length;
+                        while ((length = bis.read(bytes)) >= 0) {
+                            zipOut.write(bytes, 0, length);
+                        }
                     }
                 }
             }
