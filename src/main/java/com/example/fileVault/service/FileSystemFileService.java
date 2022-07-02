@@ -3,7 +3,10 @@ package com.example.fileVault.service;
 import com.example.fileVault.dto.FileDto;
 import com.example.fileVault.dto.FileNameById;
 import com.example.fileVault.entity.FileEntity;
-import com.example.fileVault.exception.*;
+import com.example.fileVault.exception.CantReadFileContentException;
+import com.example.fileVault.exception.CloseStreamException;
+import com.example.fileVault.exception.FileNotFoundException;
+import com.example.fileVault.exception.TooLargeFileSizeException;
 import com.example.fileVault.repository.FileSystemStorageRepository;
 import com.example.fileVault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
@@ -63,61 +66,34 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public byte[] downloadZip(List<UUID> ids) {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ZipOutputStream zipOut = new ZipOutputStream(bos);
-        zipOut.setLevel(ZipOutputStream.STORED);
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ZipOutputStream zipOut = new ZipOutputStream(bos);) {
+            zipOut.setLevel(ZipOutputStream.STORED);
 
-        Set<String> names = new HashSet<>();
-        int count = 0;
+            Set<String> names = new HashSet<>();
+            for (UUID id : ids) {
+                FileEntity fileToDownload = getEntity(id);
 
-        for (UUID id : ids) {
-            FileEntity fileToDownload = getEntity(id);
-            String fullFileName = fileToDownload.getName() + '.' + fileToDownload.getExtension();
-            while (names.contains(fullFileName))
-            {
-                fullFileName = fileToDownload.getName() + ++count + '.' + fileToDownload.getExtension();
-            }
-            names.add(fullFileName);
-            count = 0;
-
-            ByteArrayInputStream bis = new ByteArrayInputStream(fileToDownload.getContent());
-            ZipEntry zipEntry = new ZipEntry(fullFileName);
-
-            try {
-                zipOut.putNextEntry(zipEntry);
-            } catch (IOException e) {
-                throw new PutNextEntryToZipException("Can't put next entry to Zip ", e); // TODO: Make custom exception -- ok
-            }
-
-            try {
-                byte[] bytes = new byte[1024];
-                int length;
-                while ((length = bis.read(bytes)) >= 0) {
-                    zipOut.write(bytes, 0, length);
+                String fullFileName = fileToDownload.getName() + '.' + fileToDownload.getExtension();
+                int count = 0;
+                while (names.contains(fullFileName)) {
+                    fullFileName = fileToDownload.getName() + "_" + ++count + '.' + fileToDownload.getExtension();
                 }
-            } catch (IOException e) {
-                throw new ReadWriteStreamException("Can't write bytes to zip stream", e); // TODO: Make custom exception -- ok
+                names.add(fullFileName);
+
+                zipOut.putNextEntry(new ZipEntry(fullFileName));
+                try (ByteArrayInputStream bis = new ByteArrayInputStream(fileToDownload.getContent());) {
+                    byte[] bytes = new byte[1024];
+                    int length;
+                    while ((length = bis.read(bytes)) >= 0) {
+                        zipOut.write(bytes, 0, length);
+                    }
+                }
             }
-
-            try {
-                bis.close();
-            } catch (IOException e) {
-                throw new CloseStreamException("Can't close ByteArrayInputStream", e);
-            }
-        }
-        try {
-            zipOut.close();
+            return bos.toByteArray();
         } catch (IOException e) {
-            throw new CloseStreamException("Can't close ZipOutputStream", e);
+            throw new RuntimeException(e);
         }
-
-        try {
-            bos.close();
-        } catch (IOException e) {
-            throw new CloseStreamException("Can't close ByteArrayOutputStream", e);
-        }
-
-        return bos.toByteArray();
     }
 
     @Override
