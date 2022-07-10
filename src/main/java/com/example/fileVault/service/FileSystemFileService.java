@@ -7,7 +7,7 @@ import com.example.fileVault.entity.FileEntity;
 import com.example.fileVault.exception.CantReadFileContentException;
 import com.example.fileVault.exception.FileNotFoundException;
 import com.example.fileVault.exception.TooLargeFileSizeException;
-import com.example.fileVault.repository.FileSystemStorageRepository;
+import com.example.fileVault.repository.FileSystemFileRepository;
 import com.example.fileVault.util.FileSizeUtils;
 import com.example.fileVault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 public class FileSystemFileService implements FileService {
 
-    private final FileSystemStorageRepository fileRepository;
+    private final FileSystemFileRepository fileRepository;
 
     @Override
     public FileDto upload(MultipartFile file, String comment) {
@@ -46,7 +46,9 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public List<FileDto> getAll() {
-        return fileRepository.getAll().values().stream().map(FileDto::of).collect(Collectors.toList());
+        return fileRepository.getAll().values().stream()
+                .map(FileDto::of)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -56,7 +58,9 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public List<FileNameById> getNamesById() {
-        return fileRepository.getAll().values().stream().map(FileNameById::toDTO).collect(Collectors.toList());
+        return fileRepository.getAll().values().stream()
+                .map(FileNameById::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override

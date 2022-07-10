@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Component
-public class FileSystemStorageRepository {
+public class FileSystemFileRepository {
 
     private final Map<UUID, FileEntity> fileEntityMap = new HashMap<>();
 
