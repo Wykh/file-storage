@@ -13,9 +13,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 class FileVaultApplicationTests {
 
 	@Autowired
-	private FileService fileService;
-
-	@Autowired
 	private FileController controller;
 
 	@Test
