@@ -140,7 +140,7 @@ public class FileSystemFileService implements FileService {
     }
 
     @Override
-    public FileDto delete(UUID id) throws FileNotFoundException {
+    public FileDto delete(UUID id) {
         FileDto deletedModel = FileDto.of(fileRepository.deleteById(id));
         deletedModel.setModifiedDate(new Date());
         deletedModel.setDownloadUrl("");
