@@ -2,6 +2,7 @@ package com.example.fileVault.entity;
 
 import lombok.*;
 
+import javax.persistence.Entity;
 import java.util.Date;
 import java.util.UUID;
 
