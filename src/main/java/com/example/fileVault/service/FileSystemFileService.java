@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-@Service
+//@Service
 @RequiredArgsConstructor
 public class FileSystemFileService implements FileService {
 
@@ -102,7 +102,6 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public byte[] downloadZip(List<UUID> ids) {
-        byte[] result;
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();) {
             try (ZipOutputStream zipOut = new ZipOutputStream(bos);) {
                 zipOut.setLevel(ZipOutputStream.STORED);
