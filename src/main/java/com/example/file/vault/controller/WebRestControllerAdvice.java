@@ -1,7 +1,6 @@
 package com.example.file.vault.controller;
 
 import com.example.file.vault.exception.*;
-import com.example.fileVault.exception.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
