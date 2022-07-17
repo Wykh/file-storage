@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Project temp files ###
+upload-dir

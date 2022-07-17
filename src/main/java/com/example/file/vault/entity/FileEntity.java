@@ -1,7 +1,6 @@
 package com.example.file.vault.entity;
 
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -18,15 +17,14 @@ import java.util.UUID;
 public class FileEntity {
     // TODO: Set toString, equals, and hashCode - https://stackoverflow.com/questions/34241718/lombok-builder-and-jpa-default-constructor
     @Id
-    @GeneratedValue
+//    @GeneratedValue
     @Type(type="org.hibernate.type.UUIDCharType")
     private UUID id;
     private Date uploadDate;
     private Date modifiedDate;
     private String extension;
     private String name;
-    @Lob
-    private byte[] content;
+    private String contentFolderPath;
     private long size;
     private String comment;
 

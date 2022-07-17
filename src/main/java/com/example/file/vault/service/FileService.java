@@ -1,5 +1,6 @@
 package com.example.file.vault.service;
 
+import com.example.file.vault.dto.FileBytesAndNameById;
 import com.example.file.vault.dto.FileDto;
 import com.example.file.vault.dto.FileNameById;
 import com.example.file.vault.entity.FileEntity;
@@ -14,6 +15,8 @@ public interface FileService {
     FileDto upload(MultipartFile file, String comment);
 
     List<FileDto> getAll();
+
+    FileBytesAndNameById getBytesAndNameById(UUID id);
 
     FileDto getDTO(UUID id);
 

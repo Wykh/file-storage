@@ -1,12 +1,12 @@
 package com.example.file.vault.controller;
 
-import com.example.file.vault.exception.IncorrectFilterParamException;
 import com.example.file.vault.constants.FileVaultConstants;
-import com.example.file.vault.entity.FileEntity;
+import com.example.file.vault.dto.FileBytesAndNameById;
 import com.example.file.vault.dto.FileDto;
 import com.example.file.vault.dto.FileNameById;
 import com.example.file.vault.exception.EmptyGetParamException;
 import com.example.file.vault.exception.IncorrectDateTypeFilterParamException;
+import com.example.file.vault.exception.IncorrectFilterParamException;
 import com.example.file.vault.service.FileService;
 import com.google.common.base.Strings;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class FileController {
     public ResponseEntity<List<FileDto>> getAllFiles(@RequestParam(required = false) String filter,
                                                      @RequestParam(required = false) String mask,
                                                      @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date from,
-                                                     @RequestParam(required = false) @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss") Date to,
+                                                     @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date to,
                                                      @RequestParam(required = false) String dateType, // modified or upload
                                                      @RequestParam(required = false) List<String> extensions) {
         if (filter == null) {
@@ -83,13 +83,14 @@ public class FileController {
 
     @GetMapping("/download/{id}")
     public HttpEntity<byte[]> downloadFile(@PathVariable UUID id) {
-        FileEntity fileToDownload = fileService.getEntity(id);
+        FileBytesAndNameById fileToDownload = fileService.getBytesAndNameById(id);
         String fullFileName = fileToDownload.getName() + '.' + fileToDownload.getExtension();
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fullFileName);
 
         return new HttpEntity<>(fileToDownload.getContent(), responseHeaders);
+
     }
 
     @GetMapping("/download/zip")

@@ -1,6 +1,7 @@
 package com.example.file.vault.service;
 
 import com.example.file.vault.constants.FileVaultConstants;
+import com.example.file.vault.dto.FileBytesAndNameById;
 import com.example.file.vault.dto.FileDto;
 import com.example.file.vault.dto.FileNameById;
 import com.example.file.vault.entity.FileEntity;
@@ -17,9 +18,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -28,16 +33,25 @@ import java.util.zip.ZipOutputStream;
 public class DataBaseStorageService implements FileService {
 
     private final DateBaseFileRepository fileRepository;
+    Path rootLocation = Paths.get(FileVaultConstants.storageLocation);
 
-    public FileEntity create(String name, String type, String comment, byte[] content) {
+    {
+        try {
+            Files.createDirectories(rootLocation);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public FileEntity createEntity(String name, String type, String comment, String contentFolderPath, int size) {
         return FileEntity.builder()
                 .id(UUID.randomUUID())
                 .name(name)
                 .uploadDate(new Date())
                 .modifiedDate(new Date())
                 .comment(comment)
-                .content(content)
-                .size(content.length)
+                .contentFolderPath(contentFolderPath)
+                .size(size)
                 .extension(type)
                 .build();
     }
@@ -50,12 +64,23 @@ public class DataBaseStorageService implements FileService {
         String fullFileName = file.getOriginalFilename();
         String fileName = FilenameUtils.getNameWithoutExtension(fullFileName);
         String fileExtension = FilenameUtils.getExtension(fullFileName);
-
+        int fileSize;
         try {
-            return FileDto.of(fileRepository.save(create(fileName, fileExtension, comment, file.getBytes())));
+            fileSize = file.getBytes().length;
         } catch (IOException e) {
             throw new CantReadFileContentException(".getBytes() method fails", e);
         }
+
+        FileEntity newEntity = createEntity(fileName, fileExtension, comment, rootLocation.toString(), fileSize);
+        Path destinationFile = rootLocation.resolve(newEntity.getId().toString() + '.' + fileExtension);
+
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e); // TODO: create custom exception
+        }
+
+        return FileDto.of(fileRepository.save(newEntity));
     }
 
     @Override
@@ -64,6 +89,25 @@ public class DataBaseStorageService implements FileService {
                 .stream()
                 .map(FileDto::of)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public FileBytesAndNameById getBytesAndNameById(UUID id) {
+        Optional<FileEntity> optionalFile = fileRepository.findById(id);
+        if (optionalFile.isEmpty())
+            throw new FileNotFoundException("File not found :(");
+        FileEntity foundFileEntity = optionalFile.get();
+
+        Path fileLocation = rootLocation.resolve(foundFileEntity.getId().toString() + '.' + foundFileEntity.getExtension());
+
+        byte[] fileContent;
+        try {
+            fileContent = Files.readAllBytes(fileLocation);
+        } catch (IOException e) {
+            throw new RuntimeException(e); // TODO: custom exception
+        }
+
+        return FileBytesAndNameById.of(optionalFile.get(), fileContent);
     }
 
     @Override
@@ -90,7 +134,7 @@ public class DataBaseStorageService implements FileService {
 
                 Set<String> names = new HashSet<>();
                 for (UUID id : ids) {
-                    FileEntity fileToDownload = getEntity(id);
+                    FileBytesAndNameById fileToDownload = getBytesAndNameById(id);
 
                     String fullFileName = fileToDownload.getName() + '.' + fileToDownload.getExtension();
                     int count = 0;
@@ -100,7 +144,7 @@ public class DataBaseStorageService implements FileService {
                     names.add(fullFileName);
 
                     zipOut.putNextEntry(new ZipEntry(fullFileName));
-                    try (ByteArrayInputStream bis = new ByteArrayInputStream(fileToDownload.getContent());) {
+                    try (ByteArrayInputStream bis = new ByteArrayInputStream(fileToDownload.getContent())) {
                         byte[] bytes = new byte[1024];
                         int length;
                         while ((length = bis.read(bytes)) >= 0) {
@@ -130,11 +174,18 @@ public class DataBaseStorageService implements FileService {
 
     @Override
     public FileDto delete(UUID id) {
-        Optional<FileEntity> foundFileEntity = fileRepository.findById(id);
-        if (foundFileEntity.isEmpty())
+        Optional<FileEntity> optionalFileEntity = fileRepository.findById(id);
+        if (optionalFileEntity.isEmpty())
             throw new FileNotFoundException("File not found. Cant update the id");
+        FileEntity foundFileEntity = optionalFileEntity.get();
+        Path fileLocation = rootLocation.resolve(foundFileEntity.getId().toString() + '.' + foundFileEntity.getExtension());
         fileRepository.deleteById(id);
-        FileDto deletedDto = FileDto.of(foundFileEntity.get());
+        try {
+            Files.delete(fileLocation);
+        } catch (IOException e) {
+            throw new RuntimeException(e); // TODO: custom exception
+        }
+        FileDto deletedDto = FileDto.of(foundFileEntity);
         deletedDto.setDownloadUrl("");
         return deletedDto;
     }
