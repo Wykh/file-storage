@@ -7,7 +7,6 @@ import com.example.file.vault.entity.FileEntity;
 import com.example.file.vault.exception.CantReadFileContentException;
 import com.example.file.vault.exception.TooLargeFileSizeException;
 import com.example.file.vault.repository.FileSystemFileRepository;
-import com.example.file.vault.util.FileSizeUtils;
 import com.example.file.vault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -63,33 +63,63 @@ public class FileSystemFileService implements FileService {
     }
 
     @Override
-    public List<FileDto> getFilesFilteredByName(String mask) {
-        return fileRepository.getAll().values().stream()
+    public List<FileDto> getFilteredFiles(String name,
+                                          Date uploadDateFrom, Date uploadDateTo,
+                                          Date modifiedDateFrom, Date modifiedDateTo,
+                                          List<String> extensions) {
+        List<FileEntity> fileEntitiesResult = new ArrayList<>(fileRepository.getAll().values());
+
+        if (name != null) {
+            fileEntitiesResult = getFilesFilteredByName(name, fileEntitiesResult);
+        }
+        if (uploadDateFrom != null && uploadDateTo != null) {
+            fileEntitiesResult = getFilesFilteredByUploadDateRange(uploadDateFrom, uploadDateTo, fileEntitiesResult);
+        }
+        if (uploadDateFrom == null && uploadDateTo != null) {
+            fileEntitiesResult = getFilesFilteredByUploadDateRange(new Date(Long.MIN_VALUE), uploadDateTo, fileEntitiesResult);
+        }
+        if (uploadDateFrom != null && uploadDateTo == null) {
+            fileEntitiesResult = getFilesFilteredByUploadDateRange(uploadDateFrom, new Date(Long.MAX_VALUE), fileEntitiesResult);
+        }
+        if (modifiedDateFrom != null && modifiedDateTo != null) {
+            fileEntitiesResult = getFilesFilteredByModifiedDateRange(modifiedDateFrom, modifiedDateTo, fileEntitiesResult);
+        }
+        if (modifiedDateFrom == null && modifiedDateTo != null) {
+            fileEntitiesResult = getFilesFilteredByModifiedDateRange(new Date(Long.MIN_VALUE), modifiedDateTo, fileEntitiesResult);
+        }
+        if (modifiedDateFrom != null && modifiedDateTo == null) {
+            fileEntitiesResult = getFilesFilteredByModifiedDateRange(modifiedDateFrom, new Date(Long.MAX_VALUE), fileEntitiesResult);
+        }
+        if (extensions != null) {
+            fileEntitiesResult = getFilesFilteredByExtensions(extensions, fileEntitiesResult);
+        }
+
+        return fileEntitiesResult
+                .stream()
                 .map(FileDto::of)
-                .filter(entity -> entity.getName().toLowerCase().contains(mask.toLowerCase()))
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<FileDto> getFilesFilteredByModifiedDateRange(Date fromDate, Date toDate) {
-        return fileRepository.getAll().values().stream()
-                .map(FileDto::of)
-                .filter(entity -> entity.getModifiedDate().after(fromDate) && entity.getModifiedDate().before(toDate))
+    public List<FileEntity> getFilesFilteredByName(String name, List<FileEntity> resultList) {
+        return resultList.stream()
+                .filter(entity -> entity.getName().toLowerCase().contains(name.toLowerCase()))
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<FileDto> getFilesFilteredByUploadDateRange(Date fromDate, Date toDate) {
-        return fileRepository.getAll().values().stream()
-                .map(FileDto::of)
+    public List<FileEntity> getFilesFilteredByUploadDateRange(Date fromDate, Date toDate, List<FileEntity> resultList) {
+        return resultList.stream()
                 .filter(entity -> entity.getUploadDate().after(fromDate) && entity.getUploadDate().before(toDate))
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<FileDto> getFilesFilteredByExtensions(List<String> extensions) {
-        return fileRepository.getAll().values().stream()
-                .map(FileDto::of)
+    public List<FileEntity> getFilesFilteredByModifiedDateRange(Date fromDate, Date toDate, List<FileEntity> resultList) {
+        return resultList.stream()
+                .filter(entity -> entity.getModifiedDate().after(fromDate) && entity.getModifiedDate().before(toDate))
+                .collect(Collectors.toList());
+    }
+
+    public List<FileEntity> getFilesFilteredByExtensions(List<String> extensions, List<FileEntity> resultList) {
+        return resultList.stream()
                 .filter(entity -> extensions.contains(entity.getExtension()))
                 .collect(Collectors.toList());
     }

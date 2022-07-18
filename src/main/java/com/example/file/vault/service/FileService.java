@@ -27,10 +27,15 @@ public interface FileService {
 
     List<FileNameById> getNamesById();
 
-    List<FileDto> getFilesFilteredByName(String mask);
+    List<FileDto> getFilteredFiles(String name,
+                                   Date uploadDateFrom, Date uploadDateTo,
+                                   Date modifiedDateFrom, Date modifiedDateTo,
+                                   List<String> extensions);
 
-    List<FileDto> getFilesFilteredByModifiedDateRange(Date fromDate, Date toDate);
-    List<FileDto> getFilesFilteredByUploadDateRange(Date fromDate, Date toDate);
-
-    List<FileDto> getFilesFilteredByExtensions(List<String> extensions);
+//    List<FileDto> getFilesFilteredByName(String mask);
+//
+//    List<FileDto> getFilesFilteredByModifiedDateRange(Date fromDate, Date toDate);
+//    List<FileDto> getFilesFilteredByUploadDateRange(Date fromDate, Date toDate);
+//
+//    List<FileDto> getFilesFilteredByExtensions(List<String> extensions);
 }

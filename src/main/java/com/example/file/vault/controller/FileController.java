@@ -31,47 +31,16 @@ public class FileController {
     public final FileService fileService;
 
     @GetMapping
-    public ResponseEntity<List<FileDto>> getAllFiles(@RequestParam(required = false) String filter,
-                                                     @RequestParam(required = false) String mask,
-                                                     @RequestParam(required = false) @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT) Date from,
-                                                     @RequestParam(required = false) @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT) Date to,
-                                                     @RequestParam(required = false) String dateType, // modified or upload
-                                                     // TODO: отдельные диапазоны сделать
+    public ResponseEntity<List<FileDto>> getAllFiles(@RequestParam(required = false) String name,
+                                                     @RequestParam(required = false) @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT) Date uploadDateFrom,
+                                                     @RequestParam(required = false) @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT) Date uploadDateTo,
+                                                     @RequestParam(required = false) @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT) Date modifiedDateFrom,
+                                                     @RequestParam(required = false) @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT) Date modifiedDateTo,
                                                      @RequestParam(required = false) List<String> extensions) {
-        if (filter == null) {
-            return ResponseEntity.ok(fileService.getAll());
-        }
-        return switch (filter) {
-            case "name" -> getFilesFilteredByName(mask);
-            case "date" -> getFilesFilteredByDateRange(from, to, dateType);
-            case "extension" -> getFilesFilteredByExtensions(extensions);
-            default -> throw new IncorrectFilterParamException("Unknown filter param: " + filter);
-        };
-    }
-
-    private ResponseEntity<List<FileDto>> getFilesFilteredByExtensions(List<String> extensions) {
-        if (extensions == null)
-            return ResponseEntity.ok(fileService.getAll());
-        return ResponseEntity.ok(fileService.getFilesFilteredByExtensions(extensions));
-    }
-
-    private ResponseEntity<List<FileDto>> getFilesFilteredByDateRange(Date fromDate, Date toDate, String dateType) {
-        if (fromDate == null || toDate == null || dateType == null)
-            throw new EmptyGetParamException("When get files filtered by date range one of params is null");
-        log.debug(fromDate.toString());
-        log.debug(toDate.toString());
-        log.debug(dateType);
-        return switch (dateType) {
-            case "modified" -> ResponseEntity.ok(fileService.getFilesFilteredByModifiedDateRange(fromDate, toDate));
-            case "upload" -> ResponseEntity.ok(fileService.getFilesFilteredByUploadDateRange(fromDate, toDate));
-            default -> throw new IncorrectDateTypeFilterParamException("Unknown date type filter param: " + dateType);
-        };
-    }
-
-    private ResponseEntity<List<FileDto>> getFilesFilteredByName(String mask) {
-        if (Strings.isNullOrEmpty(mask))
-            throw new EmptyGetParamException("Mask param is empty or null");
-        return ResponseEntity.ok(fileService.getFilesFilteredByName(mask));
+        return ResponseEntity.ok(fileService.getFilteredFiles(name,
+                uploadDateFrom, uploadDateTo,
+                modifiedDateFrom, modifiedDateTo,
+                extensions));
     }
 
     @GetMapping("/{id}")
