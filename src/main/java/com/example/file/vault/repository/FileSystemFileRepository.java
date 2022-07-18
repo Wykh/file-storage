@@ -15,7 +15,7 @@ public class FileSystemFileRepository {
 
     private final Map<UUID, FileEntity> fileEntityMap = new HashMap<>();
 
-    public FileEntity create(String name, String type, String comment, byte[] content) {
+    public FileEntity create(String name, String extension, String comment, byte[] content) {
         FileEntity newFile = FileEntity.builder()
                 .id(UUID.randomUUID())
                 .name(name)
@@ -24,7 +24,7 @@ public class FileSystemFileRepository {
                 .comment(comment)
                 .content(content)
                 .size(content.length)
-                .extension(type)
+                .extension(extension)
                 .build();
 
         fileEntityMap.put(newFile.getId(), newFile);

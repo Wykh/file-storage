@@ -5,15 +5,19 @@ import com.example.file.vault.exception.EmptyFileListException;
 import com.example.file.vault.exception.FileNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
 // Arrange, act, assert
+@ExtendWith(MockitoExtension.class)
 class FileSystemFileRepositoryTest {
 
     private FileSystemFileRepository repository;
@@ -47,7 +51,7 @@ class FileSystemFileRepositoryTest {
         // act
         Map<UUID, FileEntity> actualMapByCreate = new HashMap<>();
         for (int i = 0; i < elemsCount; i++) {
-            FileEntity fileEntity = repository.create(anyString(), anyString(), anyString(), new byte[10]);
+            FileEntity fileEntity = repository.create("name", "extension", "comment", new byte[10]);
             actualMapByCreate.put(fileEntity.getId(), fileEntity);
         }
         Map<UUID, FileEntity> actualMapByGetAll = repository.getAll();
@@ -65,7 +69,7 @@ class FileSystemFileRepositoryTest {
 
     @Test
     void findById_shouldFindEntity_whenEntityExists() {
-        FileEntity actual = repository.create(anyString(), anyString(), anyString(), new byte[10]);
+        FileEntity actual = repository.create("name", "extension", "comment", new byte[10]);
 
         FileEntity foundEntity = repository.findById(actual.getId());
 
@@ -107,7 +111,7 @@ class FileSystemFileRepositoryTest {
 
     @Test
     void deleteById_shouldDeleteEntity_whenEntityFound() {
-        FileEntity actual = repository.create(anyString(), anyString(), anyString(), new byte[10]);
+        FileEntity actual = repository.create("name", "extension", "comment", new byte[10]);
         FileEntity deletedEntity = repository.deleteById(actual.getId());
         assertThrows(FileNotFoundException.class, () -> repository.findById(deletedEntity.getId()));
     }
