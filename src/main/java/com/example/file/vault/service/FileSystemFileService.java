@@ -9,6 +9,7 @@ import com.example.file.vault.exception.TooLargeFileSizeException;
 import com.example.file.vault.repository.FileSystemFileRepository;
 import com.example.file.vault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -100,25 +101,25 @@ public class FileSystemFileService implements FileService {
                 .collect(Collectors.toList());
     }
 
-    public List<FileEntity> getFilesFilteredByName(String name, List<FileEntity> resultList) {
+    public List<FileEntity> getFilesFilteredByName(@NonNull String name, @NonNull List<FileEntity> resultList) {
         return resultList.stream()
                 .filter(entity -> entity.getName().toLowerCase().contains(name.toLowerCase()))
                 .collect(Collectors.toList());
     }
 
-    public List<FileEntity> getFilesFilteredByUploadDateRange(Date fromDate, Date toDate, List<FileEntity> resultList) {
+    public List<FileEntity> getFilesFilteredByUploadDateRange(@NonNull Date fromDate, @NonNull Date toDate, @NonNull List<FileEntity> resultList) {
         return resultList.stream()
                 .filter(entity -> entity.getUploadDate().after(fromDate) && entity.getUploadDate().before(toDate))
                 .collect(Collectors.toList());
     }
 
-    public List<FileEntity> getFilesFilteredByModifiedDateRange(Date fromDate, Date toDate, List<FileEntity> resultList) {
+    public List<FileEntity> getFilesFilteredByModifiedDateRange(@NonNull Date fromDate, @NonNull Date toDate, @NonNull List<FileEntity> resultList) {
         return resultList.stream()
                 .filter(entity -> entity.getModifiedDate().after(fromDate) && entity.getModifiedDate().before(toDate))
                 .collect(Collectors.toList());
     }
 
-    public List<FileEntity> getFilesFilteredByExtensions(List<String> extensions, List<FileEntity> resultList) {
+    public List<FileEntity> getFilesFilteredByExtensions(@NonNull List<String> extensions, @NonNull List<FileEntity> resultList) {
         return resultList.stream()
                 .filter(entity -> extensions.contains(entity.getExtension()))
                 .collect(Collectors.toList());

@@ -1,32 +1,28 @@
 package com.example.file.vault.service;
 
-import com.example.file.vault.repository.FileSystemFileRepository;
 import com.example.file.vault.constants.FileVaultConstants;
 import com.example.file.vault.dto.FileDto;
-import com.example.file.vault.dto.FileNameById;
 import com.example.file.vault.entity.FileEntity;
 import com.example.file.vault.exception.BadFileTypeException;
 import com.example.file.vault.exception.EmptyFileNameException;
 import com.example.file.vault.exception.TooLargeFileSizeException;
-import com.example.file.vault.util.FilenameUtils;
+import com.example.file.vault.repository.FileSystemFileRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -93,7 +89,7 @@ class FileSystemFileServiceTest {
         MockMultipartFile testMultipartFile = new MockMultipartFile(
                 "foo", "foo.", MediaType.ALL_VALUE, new byte[1]);
 
-        Assertions.assertThrows(BadFileTypeException.class, () ->
+        assertThrows(BadFileTypeException.class, () ->
                 fileService.upload(testMultipartFile, "Test comment"));
     }
 
@@ -102,129 +98,9 @@ class FileSystemFileServiceTest {
         MockMultipartFile testMultipartFile = new MockMultipartFile(
                 "foo", "", MediaType.ALL_VALUE, new byte[1]);
 
-        Assertions.assertThrows(EmptyFileNameException.class, () ->
+        assertThrows(EmptyFileNameException.class, () ->
                 fileService.upload(testMultipartFile, "Test comment"));
     }
-
-//    @Test
-//    void getFilesFilteredByName_Success_shouldFindRecordByString_whenOneRecordIsFitting() {
-//        String substringToFind = "test";
-//        UUID testId1 = UUID.randomUUID();
-//        UUID testId2 = UUID.randomUUID();
-//        String testName1 = "myTestString";
-//        String testName2 = "myString";
-//        FileEntity testEntity1 = mock(FileEntity.class);
-//        FileEntity testEntity2 = mock(FileEntity.class);
-//        when(testEntity1.getId()).thenReturn(testId1);
-//        when(testEntity2.getId()).thenReturn(testId2);
-//        when(testEntity1.getName()).thenReturn(testName1);
-//        when(testEntity2.getName()).thenReturn(testName2);
-//        Map<UUID, FileEntity> dtoListTest = new HashMap<>();
-//        dtoListTest.put(testId1, testEntity1);
-//        dtoListTest.put(testId2, testEntity2);
-//        when(fileRepository.getAll()).thenReturn(dtoListTest);
-//
-//        List<FileDto> filesFilteredByName = fileService.getFilesFilteredByName(substringToFind);
-//
-//        verify(fileRepository).getAll();
-//        assertEquals(filesFilteredByName.size(), 1);
-//        assertEquals(filesFilteredByName.get(0).getName(), testName1);
-//    }
-//
-//    @Test
-//    void getFilesFilteredByModifiedDateRange_Success_shouldFindRecordInRange_whenOneRecordIsFitting() {
-//        Date fromDateToFind = new Date(100);
-//        Date toDateToFind = new Date(1000);
-//        UUID testId1 = UUID.randomUUID();
-//        UUID testId2 = UUID.randomUUID();
-//        UUID testId3 = UUID.randomUUID();
-//        Date testModifiedDate1 = new Date(100);
-//        Date testModifiedDate2 = new Date(150);
-//        Date testModifiedDate3 = new Date(1000);
-//        FileEntity testEntity1 = mock(FileEntity.class);
-//        FileEntity testEntity2 = mock(FileEntity.class);
-//        FileEntity testEntity3 = mock(FileEntity.class);
-//        when(testEntity1.getId()).thenReturn(testId1);
-//        when(testEntity2.getId()).thenReturn(testId2);
-//        when(testEntity3.getId()).thenReturn(testId3);
-//        when(testEntity1.getModifiedDate()).thenReturn(testModifiedDate1);
-//        when(testEntity2.getModifiedDate()).thenReturn(testModifiedDate2);
-//        when(testEntity3.getModifiedDate()).thenReturn(testModifiedDate3);
-//        Map<UUID, FileEntity> dtoListTest = new HashMap<>();
-//        dtoListTest.put(testId1, testEntity1);
-//        dtoListTest.put(testId2, testEntity2);
-//        dtoListTest.put(testId3, testEntity3);
-//        when(fileRepository.getAll()).thenReturn(dtoListTest);
-//
-//        List<FileDto> filesFilteredByModifiedDateRange = fileService.getFilesFilteredByModifiedDateRange(fromDateToFind, toDateToFind);
-//
-//        assertEquals(filesFilteredByModifiedDateRange.size(), 1);
-//        assertEquals(filesFilteredByModifiedDateRange.get(0).getModifiedDate(), testModifiedDate2);
-//    }
-//
-//    @Test
-//    void getFilesFilteredByUploadDateRange_Success_shouldFindRecordInRange_whenOneRecordIsFitting() {
-//        Date fromDateToFind = new Date(100);
-//        Date toDateToFind = new Date(1000);
-//        UUID testId1 = UUID.randomUUID();
-//        UUID testId2 = UUID.randomUUID();
-//        UUID testId3 = UUID.randomUUID();
-//        Date testUploadDate1 = new Date(100);
-//        Date testUploadDate2 = new Date(150);
-//        Date testUploadDate3 = new Date(1000);
-//        FileEntity testEntity1 = mock(FileEntity.class);
-//        FileEntity testEntity2 = mock(FileEntity.class);
-//        FileEntity testEntity3 = mock(FileEntity.class);
-//        when(testEntity1.getId()).thenReturn(testId1);
-//        when(testEntity2.getId()).thenReturn(testId2);
-//        when(testEntity3.getId()).thenReturn(testId3);
-//        when(testEntity1.getUploadDate()).thenReturn(testUploadDate1);
-//        when(testEntity2.getUploadDate()).thenReturn(testUploadDate2);
-//        when(testEntity3.getUploadDate()).thenReturn(testUploadDate3);
-//        Map<UUID, FileEntity> dtoListTest = new HashMap<>();
-//        dtoListTest.put(testId1, testEntity1);
-//        dtoListTest.put(testId2, testEntity2);
-//        dtoListTest.put(testId3, testEntity3);
-//        when(fileRepository.getAll()).thenReturn(dtoListTest);
-//
-//        List<FileDto> filesFilteredByUploadDateRange = fileService.getFilesFilteredByUploadDateRange(fromDateToFind, toDateToFind);
-//
-//        assertEquals(filesFilteredByUploadDateRange.size(), 1);
-//        assertEquals(filesFilteredByUploadDateRange.get(0).getUploadDate(), testUploadDate2);
-//    }
-//
-//    @Test
-//    void getFilesFilteredByExtensions_Success_shouldFindFittingExtensions_whenExtensionsListIsNotEmpty() {
-//        List<String> extensionsToFind = new ArrayList<>();
-//        extensionsToFind.add("png");
-//        extensionsToFind.add("svg");
-//        extensionsToFind.add("mov");
-//        UUID testId1 = UUID.randomUUID();
-//        UUID testId2 = UUID.randomUUID();
-//        UUID testId3 = UUID.randomUUID();
-//        String testExtension1 = "png";
-//        String testExtension2 = "jpg";
-//        String testExtension3 = "mov";
-//        FileEntity testEntity1 = mock(FileEntity.class);
-//        FileEntity testEntity2 = mock(FileEntity.class);
-//        FileEntity testEntity3 = mock(FileEntity.class);
-//        when(testEntity1.getId()).thenReturn(testId1);
-//        when(testEntity2.getId()).thenReturn(testId2);
-//        when(testEntity3.getId()).thenReturn(testId3);
-//        when(testEntity1.getExtension()).thenReturn(testExtension1);
-//        when(testEntity2.getExtension()).thenReturn(testExtension2);
-//        when(testEntity3.getExtension()).thenReturn(testExtension3);
-//        Map<UUID, FileEntity> dtoListTest = new HashMap<>();
-//        dtoListTest.put(testId1, testEntity1);
-//        dtoListTest.put(testId2, testEntity2);
-//        dtoListTest.put(testId3, testEntity3);
-//        when(fileRepository.getAll()).thenReturn(dtoListTest);
-//
-//        List<FileDto> filesFilteredByExtensions = fileService.getFilesFilteredByExtensions(extensionsToFind);
-//
-//        assertEquals(filesFilteredByExtensions.size(), 2);
-//        filesFilteredByExtensions.forEach((fileDto) -> assertTrue(extensionsToFind.contains(fileDto.getExtension())));
-//    }
 
     @Test
     void getEntity_Success_shouldRecordById_whenAllOk() {
@@ -290,5 +166,137 @@ class FileSystemFileServiceTest {
         assertThat(actualFileDto)
                 .usingRecursiveComparison()
                 .isEqualTo(expectedFileDto);
+    }
+
+    @Test
+    void getFilesFilteredByName_shouldGetFilteredFiles_whenGoodParamsPassed() {
+        String nameToFind = "test";
+        List<String> listOfGoodNames = Arrays.asList("test", "TEST", "nameOfTest");
+        List<FileEntity> fileEntityList = Arrays.asList(
+                FileEntity.builder().name(listOfGoodNames.get(0)).build(),
+                FileEntity.builder().name(listOfGoodNames.get(1)).build(),
+                FileEntity.builder().name(listOfGoodNames.get(2)).build(),
+                FileEntity.builder().name("BadName").build()
+        );
+
+        List<FileEntity> filesFilteredByName = fileService.getFilesFilteredByName(nameToFind, fileEntityList);
+
+        assertEquals(filesFilteredByName.size(), 3);
+        filesFilteredByName.forEach((entity) -> assertTrue(listOfGoodNames.contains(entity.getName())));
+    }
+
+    @Test
+    void getFilesFilteredByUploadDateRange_shouldGetFilteredFiles_whenTwoDatesAreNotNull() {
+        Date uploadDateFrom = new Date(1000);
+        Date uploadDateTo = new Date(1500);
+        List<FileEntity> fileEntityList = Arrays.asList(
+                FileEntity.builder().name("bad").uploadDate(new Date(999)).build(),
+                FileEntity.builder().name("bad").uploadDate(new Date(1501)).build(),
+                FileEntity.builder().name("bad").uploadDate(new Date(1000)).build(),
+                FileEntity.builder().name("bad").uploadDate(new Date(1500)).build(),
+                FileEntity.builder().name("good").uploadDate(new Date(1250)).build()
+        );
+
+        List<FileEntity> filesFilteredByUploadDateRange =
+                fileService.getFilesFilteredByUploadDateRange(uploadDateFrom, uploadDateTo, fileEntityList);
+
+        assertEquals(filesFilteredByUploadDateRange.size(), 1);
+        assertEquals(filesFilteredByUploadDateRange.get(0).getName(), "good");
+    }
+
+    @Test
+    void getFilesFilteredByModifiedDateRange_shouldGetFilteredFiles_whenTwoDatesAreNotNull() {
+        Date modifiedDateFrom = new Date(1000);
+        Date modifiedDateTo = new Date(1500);
+        List<FileEntity> fileEntityList = Arrays.asList(
+                FileEntity.builder().name("bad").modifiedDate(new Date(999)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1501)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1000)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1500)).build(),
+                FileEntity.builder().name("good").modifiedDate(new Date(1250)).build()
+        );
+
+        List<FileEntity> filesFilteredByModifiedDateRange =
+                fileService.getFilesFilteredByModifiedDateRange(modifiedDateFrom, modifiedDateTo, fileEntityList);
+
+        assertEquals(filesFilteredByModifiedDateRange.size(), 1);
+        assertEquals(filesFilteredByModifiedDateRange.get(0).getName(), "good");
+    }
+
+    @Test
+    void getFilesFilteredByExtensions_shouldGetFilteredFiles_whenExtensionsAreNotNull() {
+        List<String> extensionsToFind = Arrays.asList("png", "jpg");
+        List<FileEntity> fileEntityList = Arrays.asList(
+                FileEntity.builder().name("bad").extension("pngarable").build(),
+                FileEntity.builder().name("good").extension("png").build(),
+                FileEntity.builder().name("good").extension("jpg").build()
+        );
+
+        List<FileEntity> filesFilteredByExtensions =
+                fileService.getFilesFilteredByExtensions(extensionsToFind, fileEntityList);
+
+        assertEquals(filesFilteredByExtensions.size(), 2);
+        filesFilteredByExtensions.forEach((entity -> assertTrue(extensionsToFind.contains(entity.getExtension()))));
+    }
+
+
+    @Test
+    void getFilteredFiles_shouldGetFilteredFilesAsDtoList_whenAllParamsIsOk() {
+        String nameToFind = "test";
+        Date uploadDateFrom = new Date(1000);
+        Date uploadDateTo = new Date(1500);
+        Date modifiedDateFrom = new Date(1250);
+        Date modifiedDateTo = new Date(1750);
+        List<String> extensionsToFind = Arrays.asList("png", "jpg");
+        List<FileEntity> fileEntityList = Arrays.asList(
+                FileEntity.builder().id(UUID.randomUUID()).name("test1good").extension("jpg").modifiedDate(new Date(1300)).uploadDate(new Date(1270)).build(),
+                FileEntity.builder().id(UUID.randomUUID()).name("test1bad").extension("jpg").modifiedDate(new Date(1300)).uploadDate(new Date(900)).build(),
+                FileEntity.builder().id(UUID.randomUUID()).name("test1bad").extension("png").modifiedDate(new Date(1800)).uploadDate(new Date(1270)).build(),
+                FileEntity.builder().id(UUID.randomUUID()).name("test1bad").extension("wtf").modifiedDate(new Date(1300)).uploadDate(new Date(1270)).build(),
+                FileEntity.builder().id(UUID.randomUUID()).name("bad").extension("png").modifiedDate(new Date(1300)).uploadDate(new Date(1270)).build(),
+                FileEntity.builder().id(UUID.randomUUID()).name("bad").extension("jpg").modifiedDate(new Date(1300)).uploadDate(new Date(1270)).build()
+        );
+        Map<UUID, FileEntity> fileEntityMap = new HashMap<>();
+        fileEntityList.forEach((entity -> fileEntityMap.put(entity.getId(), entity)));
+        when(fileRepository.getAll()).thenReturn(fileEntityMap);
+
+        List<FileDto> filteredFiles =
+                fileService.getFilteredFiles(nameToFind,
+                        uploadDateFrom, uploadDateTo,
+                        modifiedDateFrom, modifiedDateTo,
+                        extensionsToFind);
+
+        assertEquals(1, filteredFiles.size());
+        assertEquals("test1good", filteredFiles.get(0).getName());
+    }
+
+    @Test
+    void getFilteredFiles_shouldGetFilteredFilesAsDtoList_whenSomeDateIsMissing() {
+        String nameToFind = "test";
+        Date uploadDateFrom = new Date(1000);
+        Date uploadDateTo = null;
+        Date modifiedDateFrom = null;
+        Date modifiedDateTo = null;
+        List<String> extensionsToFind = Arrays.asList("png", "jpg");
+        List<FileEntity> fileEntityList = Arrays.asList(
+                FileEntity.builder().id(UUID.randomUUID()).name("test1good").extension("jpg").modifiedDate(new Date(1300)).uploadDate(new Date(1270)).build(),
+                FileEntity.builder().id(UUID.randomUUID()).name("test1good").extension("jpg").modifiedDate(new Date(1300)).uploadDate(new Date(1300)).build(),
+                FileEntity.builder().id(UUID.randomUUID()).name("test1bad").extension("png").modifiedDate(new Date(900)).uploadDate(new Date(900)).build(),
+                FileEntity.builder().id(UUID.randomUUID()).name("test1bad").extension("wtf").modifiedDate(new Date(900)).uploadDate(new Date(900)).build(),
+                FileEntity.builder().id(UUID.randomUUID()).name("bad").extension("png").modifiedDate(new Date(900)).uploadDate(new Date(900)).build(),
+                FileEntity.builder().id(UUID.randomUUID()).name("bad").extension("jpg").modifiedDate(new Date(900)).uploadDate(new Date(900)).build()
+        );
+        Map<UUID, FileEntity> fileEntityMap = new HashMap<>();
+        fileEntityList.forEach((entity -> fileEntityMap.put(entity.getId(), entity)));
+        when(fileRepository.getAll()).thenReturn(fileEntityMap);
+
+        List<FileDto> filteredFiles =
+                fileService.getFilteredFiles(nameToFind,
+                        uploadDateFrom, uploadDateTo,
+                        modifiedDateFrom, modifiedDateTo,
+                        extensionsToFind);
+
+        assertEquals(2, filteredFiles.size());
+        filteredFiles.forEach(entity -> assertEquals("test1good", entity.getName()));
     }
 }
