@@ -38,14 +38,6 @@ public class FileSystemFileRepository {
         return fileEntityMap;
     }
 
-    public FileEntity updateById(UUID id, String name, String comment) {
-        FileEntity fileToUpdate = findById(id);
-        fileToUpdate.setName(name);
-        fileToUpdate.setComment(comment);
-        fileToUpdate.setModifiedDate(new Date());
-        return fileToUpdate;
-    }
-
     public FileEntity findById(UUID id) {
         FileEntity fileToUpdate = fileEntityMap.get(id);
         if (fileToUpdate == null) {
@@ -54,10 +46,19 @@ public class FileSystemFileRepository {
         return fileToUpdate;
     }
 
+    public FileEntity updateById(UUID id, String name, String comment) {
+        FileEntity fileToUpdate = findById(id);
+        fileToUpdate.setName(name);
+        fileToUpdate.setComment(comment);
+        fileToUpdate.setModifiedDate(new Date());
+        return fileToUpdate;
+    }
+
     public FileEntity deleteById(UUID id) {
         FileEntity deletedEntity = fileEntityMap.remove(id);
         if (deletedEntity == null)
-            throw new FileNotFoundException("Id to delete not found");
+            throw new FileNotFoundException("ID to delete not found");
+        deletedEntity.setModifiedDate(new Date());
         return deletedEntity;
     }
 }

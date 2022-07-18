@@ -16,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -36,124 +38,72 @@ class FileSystemFileServiceTest {
     @InjectMocks
     FileSystemFileService fileService;
 
-    @Mock
-    FileDto fileDtoMock;
-
-    @Mock
-    FileEntity fileEntityMock;
-
-    @Mock
-    MultipartFile multipartFileMock;
-
     @Test
     void upload_Success_shouldUploadFile_whenAllIsOk() throws IOException {
         // arrange
         String testName = "tname";
         String testExtension = "textension";
         String testComment = "tcomment";
-        long testedSize = FileVaultConstants.MB_TO_BYTES_MULTIPLIER * FileVaultConstants.MAX_FILE_SIZE_MB - 1;
+        long testedSize = FileVaultConstants.MAX_FILE_SIZE_BYTES - 1;
         byte[] testContent = new byte[(int) testedSize];
 
-        try (MockedStatic<FileDto> dtoMockedStatic = mockStatic(FileDto.class)) {
-            dtoMockedStatic.when(() -> FileDto.of(any(FileEntity.class))).thenReturn(fileDtoMock);
-            when(fileRepository.create(anyString(), anyString(), anyString(), any())).thenReturn(fileEntityMock);
-            when(multipartFileMock.getSize()).thenReturn(testedSize);
-            when(multipartFileMock.getBytes()).thenReturn(testContent);
-            when(multipartFileMock.getOriginalFilename()).thenReturn(testName + "." + testExtension);
+        FileEntity testFileEntity = FileEntity.builder()
+                .name(testName)
+                .extension(testExtension)
+                .comment(testComment)
+                .size(testedSize)
+                .content(testContent)
+                .id(UUID.randomUUID())
+                .modifiedDate(new Date())
+                .uploadDate(new Date())
+                .build();
+        FileDto expectedFileDto = FileDto.of(testFileEntity);
+        MockMultipartFile testMultipartFile = new MockMultipartFile(
+                testName, testName + '.' + testExtension, MediaType.ALL_VALUE, testContent);
 
-            // act
-            fileService.upload(multipartFileMock, testComment);
+        when(fileRepository.create(testName, testExtension, testComment, testContent)).thenReturn(testFileEntity);
 
-            // assert
-            verify(fileRepository).create(testName, testExtension, testComment, testContent);
-            dtoMockedStatic.verify(() -> FileDto.of(fileEntityMock));
-            verify(multipartFileMock).getSize();
-            assertEquals(testedSize, testContent.length);
-        }
+        //act
+        FileDto actualFileDto = fileService.upload(testMultipartFile, testComment);
+
+        // assert
+        verify(fileRepository).create(testName, testExtension, testComment, testContent);
+        assertThat(actualFileDto)
+                .usingRecursiveComparison()
+                .isEqualTo(expectedFileDto);
     }
 
     @Test
     void upload_Fail_shouldThrowException_whenFileSizeMoreThanMaxSize() {
         // arrange
-        long tooMuchMB = FileVaultConstants.MB_TO_BYTES_MULTIPLIER * FileVaultConstants.MAX_FILE_SIZE_MB + 1;
-        try (MockedStatic<FileDto> dtoMockedStatic = mockStatic(FileDto.class);
-             MockedStatic<FilenameUtils> utilsMockedStatic = mockStatic(FilenameUtils.class)) {
+        String testName = "tname";
+        long tooMuchMB = FileVaultConstants.MAX_FILE_SIZE_BYTES + 1;
+        byte[] testContent = new byte[(int) tooMuchMB];
 
-            dtoMockedStatic.when(() -> FileDto.of(any())).thenReturn(fileDtoMock);
-            utilsMockedStatic.when(() -> FilenameUtils.getNameWithoutExtension(anyString())).thenReturn("test");
-            utilsMockedStatic.when(() -> FilenameUtils.getExtension(anyString())).thenReturn("test");
-            when(multipartFileMock.getSize()).thenReturn(tooMuchMB);
+        MockMultipartFile testMultipartFile = new MockMultipartFile(testName, testContent);
 
-            // act, assert
-            Assertions.assertThrows(TooLargeFileSizeException.class,
-                    () -> fileService.upload(multipartFileMock, "Test comment"));
-        }
+        // act, assert
+        Assertions.assertThrows(TooLargeFileSizeException.class,
+                () -> fileService.upload(testMultipartFile, "Test comment"));
     }
 
     @Test
     void upload_Fail_shouldThrowException_whenBadFileName() {
         // TODO: Test png, img and other extensions
+        MockMultipartFile testMultipartFile = new MockMultipartFile(
+                "foo", "foo.", MediaType.ALL_VALUE, new byte[1]);
 
-        // arrange
-        try (MockedStatic<FileDto> dtoMockedStatic = mockStatic(FileDto.class)) {
-            dtoMockedStatic.when(() -> FileDto.of(any())).thenReturn(fileDtoMock);
-            when(multipartFileMock.getSize()).thenReturn(0L);
-            when(multipartFileMock.getOriginalFilename()).thenReturn("test");
-
-            // act, assert
-            Assertions.assertThrows(BadFileTypeException.class, () ->
-                    fileService.upload(multipartFileMock, "Test comment"));
-            dtoMockedStatic.verify(() -> FileDto.of(any()), times(0));
-        }
+        Assertions.assertThrows(BadFileTypeException.class, () ->
+                fileService.upload(testMultipartFile, "Test comment"));
     }
 
     @Test
     void upload_Fail_shouldThrowException_whenFileNameIsEmpty() {
-        // arrange
-        try (MockedStatic<FileDto> dtoMockedStatic = mockStatic(FileDto.class)) {
-            dtoMockedStatic.when(() -> FileDto.of(any())).thenReturn(fileDtoMock);
-            when(multipartFileMock.getSize()).thenReturn(0L);
-            when(multipartFileMock.getOriginalFilename()).thenReturn("");
+        MockMultipartFile testMultipartFile = new MockMultipartFile(
+                "foo", "", MediaType.ALL_VALUE, new byte[1]);
 
-            // act, assert
-            Assertions.assertThrows(EmptyFileNameException.class, () ->
-                    fileService.upload(multipartFileMock, "Test comment"));
-            dtoMockedStatic.verify(() -> FileDto.of(any()), times(0));
-        }
-    }
-
-    @Test
-    void getAll_Success_shouldGetAllRecords_whenAllOk() {
-        Map<UUID, FileEntity> dtoListMock = (Map<UUID, FileEntity>) mock(Map.class);
-        when(fileRepository.getAll()).thenReturn(dtoListMock);
-
-        List<FileDto> actual = fileService.getAll();
-
-        verify(fileRepository).getAll();
-        assertNotNull(actual);
-    }
-
-    @Test
-    void getDTO_Success_shouldRecordById_whenAllOk() {
-        FileEntity found = mock(FileEntity.class);
-        when(fileRepository.findById(any(UUID.class))).thenReturn(found);
-        UUID randomId = UUID.randomUUID();
-
-        FileDto actual = fileService.getDTO(randomId);
-
-        verify(fileRepository).findById(randomId);
-        assertNotNull(actual);
-    }
-
-    @Test
-    void getNamesById_Success_shouldRecordById_whenAllOk() {
-        Map<UUID, FileEntity> dtoListMock = (Map<UUID, FileEntity>) mock(Map.class);
-        when(fileRepository.getAll()).thenReturn(dtoListMock);
-
-        List<FileNameById> actual = fileService.getNamesById();
-
-        verify(fileRepository).getAll();
-        assertNotNull(actual);
+        Assertions.assertThrows(EmptyFileNameException.class, () ->
+                fileService.upload(testMultipartFile, "Test comment"));
     }
 
     @Test
@@ -295,25 +245,50 @@ class FileSystemFileServiceTest {
 
     @Test
     void update_shouldUpdateFile_whenFileFound() {
-        UUID randomId = UUID.randomUUID();
-        String newFileName = "testNameNew";
-        String newComment = "testCommentNew";
-        when(fileRepository.updateById(any(UUID.class), anyString(), anyString())).thenReturn(fileEntityMock);
+        UUID idSample = UUID.fromString("1-1-1-1-1");
+        String newFileName = "newName";
+        String newComment = "newComment";
+        FileEntity testFileEntity = FileEntity.builder()
+                .name(newFileName)
+                .extension("test")
+                .comment(newFileName)
+                .size(1)
+                .content(new byte[1])
+                .id(idSample)
+                .modifiedDate(new Date())
+                .uploadDate(new Date())
+                .build();
+        FileDto expectedFileDto = FileDto.of(testFileEntity);
+        when(fileRepository.updateById(idSample, newFileName, newComment)).thenReturn(testFileEntity);
 
-        FileDto actual = fileService.update(randomId, newFileName, newComment);
+        FileDto actualFileDto = fileService.update(idSample, newFileName, newComment);
 
-        verify(fileRepository).updateById(randomId, newFileName, newComment);
-        assertNotNull(actual);
+        assertThat(actualFileDto)
+                .usingRecursiveComparison()
+                .isEqualTo(expectedFileDto);
     }
 
     @Test
     void delete_shouldDeleteFile_whenFileFound() {
-        UUID randomId = UUID.randomUUID();
-        when(fileRepository.deleteById(any(UUID.class))).thenReturn(fileEntityMock);
+        UUID idSample = UUID.fromString("1-1-1-1-1");
+        FileEntity testFileEntity = FileEntity.builder()
+                .name("testName")
+                .extension("test")
+                .comment("testComment")
+                .size(1)
+                .content(new byte[1])
+                .id(idSample)
+                .modifiedDate(new Date())
+                .uploadDate(new Date())
+                .build();
+        FileDto expectedFileDto = FileDto.of(testFileEntity);
+        expectedFileDto.setDownloadUrl("");
+        when(fileRepository.deleteById(idSample)).thenReturn(testFileEntity);
 
-        FileDto actual = fileService.delete(randomId);
+        FileDto actualFileDto = fileService.delete(idSample);
 
-        verify(fileRepository).deleteById(randomId);
-        assertNotNull(actual);
+        assertThat(actualFileDto)
+                .usingRecursiveComparison()
+                .isEqualTo(expectedFileDto);
     }
 }

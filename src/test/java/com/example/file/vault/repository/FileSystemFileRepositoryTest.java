@@ -17,7 +17,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 class FileSystemFileRepositoryTest {
 
     private FileSystemFileRepository repository;
-    private UUID hardcodedId = UUID.fromString("1-1-1-1-1");
+    private final UUID hardcodedId = UUID.fromString("1-1-1-1-1");
 
     @BeforeEach
     void init() {
@@ -37,29 +37,6 @@ class FileSystemFileRepositoryTest {
 
         // assert
         assertNotNull(actual);
-    }
-
-    @Test
-    void test_test() {
-        // arrange
-        String testName = "testName";
-        String testExtension = "testExtension";
-        String testComment = "testComment";
-        byte[] testContent = new byte[100];
-
-        // act
-        FileEntity actual = repository.create(testName, testExtension, testComment, testContent);
-        FileEntity expected = repository.create(testName, testExtension, testComment, testContent);
-        UUID newid = UUID.fromString("1-1-1-1-1");
-        System.out.println(newid.toString());
-        actual.setId(newid);
-        expected.setId(newid);
-
-        // assert
-        assertNotNull(actual);
-        assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
     }
 
     @Test
@@ -101,23 +78,60 @@ class FileSystemFileRepositoryTest {
     }
 
     @Test
-    void updateById_shouldUpdateEntity_whenEntityFound() {
+    void updateById_shouldUpdateEntity_whenEntityFound() throws InterruptedException {
+        String extension = "testExtension";
+        byte[] content = new byte[1];
         String newName = "updatedName";
         String newComment = "updatedComment";
 
-        FileEntity actual = repository.create("testName", anyString(), "testComment", new byte[10]);
-        FileEntity updatedActual = repository.updateById(actual.getId(), newName, newComment);
+        FileEntity expected = FileEntity.builder()
+                .name(newName)
+                .extension(extension)
+                .comment(newComment)
+                .size(1)
+                .content(content)
+                .build();
 
-        assertEquals(actual, updatedActual);
-        assertEquals(updatedActual.getName(), newName);
-        assertEquals(updatedActual.getComment(), newComment);
+        FileEntity actual = repository.create("oldName", extension, "oldComment", content);
+        Date actualModifiedDateBeforeUpdate = actual.getModifiedDate();
+        Thread.sleep(1); // иначе даты до и после могут быть равны, если выполнение пройдёт слишком быстро
+        FileEntity updatedActual = repository.updateById(actual.getId(), newName, newComment);
+        Date actualModifiedDateAfterUpdate = updatedActual.getModifiedDate();
+
+        assertThat(actualModifiedDateAfterUpdate).isAfter(actualModifiedDateBeforeUpdate);
+        assertThat(updatedActual)
+                .usingRecursiveComparison()
+                .ignoringFields("id", "modifiedDate", "uploadDate")
+                .isEqualTo(expected);
     }
 
     @Test
     void deleteById_shouldDeleteEntity_whenEntityFound() {
         FileEntity actual = repository.create(anyString(), anyString(), anyString(), new byte[10]);
-
         FileEntity deletedEntity = repository.deleteById(actual.getId());
         assertThrows(FileNotFoundException.class, () -> repository.findById(deletedEntity.getId()));
+    }
+
+    @Test
+    void test_test() {
+        // arrange
+        String testName = "testName";
+        String testExtension = "testExtension";
+        String testComment = "testComment";
+        byte[] testContent = new byte[100];
+
+        // act
+        FileEntity actual = repository.create(testName, testExtension, testComment, testContent);
+        FileEntity expected = repository.create(testName, testExtension, testComment, testContent);
+        UUID newid = UUID.fromString("1-1-1-1-1");
+        System.out.println(newid.toString());
+        actual.setId(newid);
+        expected.setId(newid);
+
+        // assert
+        assertNotNull(actual);
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
     }
 }
