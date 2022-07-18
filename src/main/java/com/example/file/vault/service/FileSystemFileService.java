@@ -29,7 +29,7 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public FileDto upload(MultipartFile file, String comment) {
-        if (FileSizeUtils.toMB(file.getSize()) >= FileVaultConstants.MAX_FILE_SIZE_MB)
+        if (file.getSize() >= FileVaultConstants.MAX_FILE_SIZE_BYTES)
             throw new TooLargeFileSizeException("File Size Cant be more than " + FileVaultConstants.MAX_FILE_SIZE_MB + "MB");
 
         String fullFileName = file.getOriginalFilename();
@@ -101,7 +101,6 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public byte[] downloadZip(List<UUID> ids) {
-        byte[] result;
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();) {
             try (ZipOutputStream zipOut = new ZipOutputStream(bos);) {
                 zipOut.setLevel(ZipOutputStream.STORED);

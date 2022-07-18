@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static org.assertj.core.api.Assertions.as;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -15,6 +17,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 class FileSystemFileRepositoryTest {
 
     private FileSystemFileRepository repository;
+    private UUID hardcodedId = UUID.fromString("1-1-1-1-1");
 
     @BeforeEach
     void init() {
@@ -37,18 +40,44 @@ class FileSystemFileRepositoryTest {
     }
 
     @Test
+    void test_test() {
+        // arrange
+        String testName = "testName";
+        String testExtension = "testExtension";
+        String testComment = "testComment";
+        byte[] testContent = new byte[100];
+
+        // act
+        FileEntity actual = repository.create(testName, testExtension, testComment, testContent);
+        FileEntity expected = repository.create(testName, testExtension, testComment, testContent);
+        UUID newid = UUID.fromString("1-1-1-1-1");
+        System.out.println(newid.toString());
+        actual.setId(newid);
+        expected.setId(newid);
+
+        // assert
+        assertNotNull(actual);
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
+    }
+
+    @Test
     void getAll_shouldGetAllEntities_whenRepositoryNotEmpty() {
         // arrange
         int elemsCount = 3;
 
         // act
+        Map<UUID, FileEntity> actualMapByCreate = new HashMap<>();
         for (int i = 0; i < elemsCount; i++) {
-            repository.create(anyString(), anyString(), anyString(), new byte[10]);
+            FileEntity fileEntity = repository.create(anyString(), anyString(), anyString(), new byte[10]);
+            actualMapByCreate.put(fileEntity.getId(), fileEntity);
         }
-        Map<UUID, FileEntity> actualMap = repository.getAll();
+        Map<UUID, FileEntity> actualMapByGetAll = repository.getAll();
 
         // assert
-        assertEquals(elemsCount, actualMap.size());
+        assertEquals(elemsCount, actualMapByGetAll.size());
+        assertEquals(actualMapByCreate, actualMapByGetAll);
     }
 
     @Test
@@ -68,7 +97,7 @@ class FileSystemFileRepositoryTest {
 
     @Test
     void findById_shouldThrowException_whenEntityMissing() {
-        assertThrows(FileNotFoundException.class, () -> repository.findById(UUID.randomUUID()));
+        assertThrows(FileNotFoundException.class, () -> repository.findById(hardcodedId));
     }
 
     @Test

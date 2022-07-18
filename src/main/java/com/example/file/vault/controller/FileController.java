@@ -1,15 +1,16 @@
 package com.example.file.vault.controller;
 
-import com.example.file.vault.exception.IncorrectFilterParamException;
 import com.example.file.vault.constants.FileVaultConstants;
-import com.example.file.vault.entity.FileEntity;
 import com.example.file.vault.dto.FileDto;
 import com.example.file.vault.dto.FileNameById;
+import com.example.file.vault.entity.FileEntity;
 import com.example.file.vault.exception.EmptyGetParamException;
 import com.example.file.vault.exception.IncorrectDateTypeFilterParamException;
+import com.example.file.vault.exception.IncorrectFilterParamException;
 import com.example.file.vault.service.FileService;
 import com.google.common.base.Strings;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/file")
 @RequiredArgsConstructor
+@Slf4j
 public class FileController {
 
     public final FileService fileService;
@@ -31,9 +33,10 @@ public class FileController {
     @GetMapping
     public ResponseEntity<List<FileDto>> getAllFiles(@RequestParam(required = false) String filter,
                                                      @RequestParam(required = false) String mask,
-                                                     @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date from,
-                                                     @RequestParam(required = false) @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss") Date to,
+                                                     @RequestParam(required = false) @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT) Date from,
+                                                     @RequestParam(required = false) @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT) Date to,
                                                      @RequestParam(required = false) String dateType, // modified or upload
+                                                     // TODO: отдельные диапазоны сделать
                                                      @RequestParam(required = false) List<String> extensions) {
         if (filter == null) {
             return ResponseEntity.ok(fileService.getAll());
@@ -53,11 +56,11 @@ public class FileController {
     }
 
     private ResponseEntity<List<FileDto>> getFilesFilteredByDateRange(Date fromDate, Date toDate, String dateType) {
-        System.out.println(fromDate);
-        System.out.println(toDate);
-        System.out.println(dateType);
         if (fromDate == null || toDate == null || dateType == null)
             throw new EmptyGetParamException("When get files filtered by date range one of params is null");
+        log.debug(fromDate.toString());
+        log.debug(toDate.toString());
+        log.debug(dateType);
         return switch (dateType) {
             case "modified" -> ResponseEntity.ok(fileService.getFilesFilteredByModifiedDateRange(fromDate, toDate));
             case "upload" -> ResponseEntity.ok(fileService.getFilesFilteredByUploadDateRange(fromDate, toDate));

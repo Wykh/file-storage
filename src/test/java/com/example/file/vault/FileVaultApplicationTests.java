@@ -7,15 +7,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@SpringBootTest
 class FileVaultApplicationTests {
-
-	@Autowired
-	private FileController controller;
 
 	@Test
 	void contextLoads() {
-		assertThat(controller).isNotNull();
 	}
 
 }
