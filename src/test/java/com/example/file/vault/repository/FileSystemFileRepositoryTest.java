@@ -115,27 +115,4 @@ class FileSystemFileRepositoryTest {
         FileEntity deletedEntity = repository.deleteById(actual.getId());
         assertThrows(FileNotFoundException.class, () -> repository.findById(deletedEntity.getId()));
     }
-
-    @Test
-    void test_test() {
-        // arrange
-        String testName = "testName";
-        String testExtension = "testExtension";
-        String testComment = "testComment";
-        byte[] testContent = new byte[100];
-
-        // act
-        FileEntity actual = repository.create(testName, testExtension, testComment, testContent);
-        FileEntity expected = repository.create(testName, testExtension, testComment, testContent);
-        UUID newid = UUID.fromString("1-1-1-1-1");
-        System.out.println(newid.toString());
-        actual.setId(newid);
-        expected.setId(newid);
-
-        // assert
-        assertNotNull(actual);
-        assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
-    }
 }
