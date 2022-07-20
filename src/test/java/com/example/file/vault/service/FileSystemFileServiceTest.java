@@ -7,7 +7,6 @@ import com.example.file.vault.exception.BadFileTypeException;
 import com.example.file.vault.exception.EmptyFileNameException;
 import com.example.file.vault.exception.TooLargeFileSizeException;
 import com.example.file.vault.repository.FileSystemFileRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,7 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -80,8 +79,8 @@ class FileSystemFileServiceTest {
         MockMultipartFile testMultipartFile = new MockMultipartFile(testName, testContent);
 
         // act, assert
-        Assertions.assertThrows(TooLargeFileSizeException.class,
-                () -> fileService.upload(testMultipartFile, "Test comment"));
+        assertThatExceptionOfType(TooLargeFileSizeException.class)
+                .isThrownBy(() -> fileService.upload(testMultipartFile, "Test comment"));
     }
 
     @Test
@@ -90,8 +89,8 @@ class FileSystemFileServiceTest {
         MockMultipartFile testMultipartFile = new MockMultipartFile(
                 "foo", "foo.", MediaType.ALL_VALUE, new byte[1]);
 
-        assertThrows(BadFileTypeException.class, () ->
-                fileService.upload(testMultipartFile, "Test comment"));
+        assertThatExceptionOfType(BadFileTypeException.class)
+                .isThrownBy(() -> fileService.upload(testMultipartFile, "Test comment"));
     }
 
     @Test
@@ -99,8 +98,8 @@ class FileSystemFileServiceTest {
         MockMultipartFile testMultipartFile = new MockMultipartFile(
                 "foo", "", MediaType.ALL_VALUE, new byte[1]);
 
-        assertThrows(EmptyFileNameException.class, () ->
-                fileService.upload(testMultipartFile, "Test comment"));
+        assertThatExceptionOfType(EmptyFileNameException.class)
+                .isThrownBy(() -> fileService.upload(testMultipartFile, "Test comment"));
     }
 
     @Test
@@ -112,7 +111,7 @@ class FileSystemFileServiceTest {
         FileEntity actual = fileService.getEntity(randomId);
 
         verify(fileRepository).findById(randomId);
-        assertNotNull(actual);
+        assertThat(actual).isNotNull();
     }
 
     @Test
@@ -190,8 +189,8 @@ class FileSystemFileServiceTest {
                         null, null,
                         null);
 
-        assertEquals(3, filesFilteredByName.size());
-        filesFilteredByName.forEach((model) -> assertTrue(listOfGoodNames.contains(model.getName())));
+        assertThat(filesFilteredByName.size()).isEqualTo(3);
+        filesFilteredByName.forEach((model) -> assertThat(listOfGoodNames.contains(model.getName())).isTrue());
     }
 
     @Test
@@ -215,8 +214,8 @@ class FileSystemFileServiceTest {
                         null, null,
                         null);
 
-        assertEquals(filesFilteredByUploadDateRange.size(), 2);
-        filesFilteredByUploadDateRange.forEach(model -> assertEquals(model.getName(), "good"));
+        assertThat(filesFilteredByUploadDateRange.size()).isEqualTo(2);
+        filesFilteredByUploadDateRange.forEach(model -> assertThat(model.getName()).isEqualTo("good"));
     }
 
     @Test
@@ -240,8 +239,8 @@ class FileSystemFileServiceTest {
                         null, null,
                         null);
 
-        assertEquals(filesFilteredByUploadDateRange.size(), 2);
-        filesFilteredByUploadDateRange.forEach(model -> assertEquals(model.getName(), "good"));
+        assertThat(filesFilteredByUploadDateRange.size()).isEqualTo(2);
+        filesFilteredByUploadDateRange.forEach(model -> assertThat(model.getName()).isEqualTo("good"));
     }
 
     @Test
@@ -268,9 +267,9 @@ class FileSystemFileServiceTest {
                         null, null,
                         null);
 
-        assertEquals(3, filesFilteredByUploadDateRange.size());
+        assertThat(filesFilteredByUploadDateRange.size()).isEqualTo(3);
         filesFilteredByUploadDateRange
-                .forEach(model -> assertEquals(model.getName(), "good"));
+                .forEach(model -> assertThat(model.getName()).isEqualTo("good"));
     }
 
     @Test
@@ -293,9 +292,9 @@ class FileSystemFileServiceTest {
                         null, null,
                         extensionsToFind);
 
-        assertEquals(2, filesFilteredByExtensions.size());
+        assertThat(filesFilteredByExtensions.size()).isEqualTo(2);
         filesFilteredByExtensions
-                .forEach(model -> assertEquals(model.getName(), "good"));
+                .forEach(model -> assertThat(model.getName()).isEqualTo("good"));
     }
 
     @Test
@@ -325,8 +324,8 @@ class FileSystemFileServiceTest {
                         modifiedDateFrom, modifiedDateTo,
                         extensionsToFind);
 
-        assertEquals(1, filteredFiles.size());
-        assertEquals("test1good", filteredFiles.get(0).getName());
+        assertThat(filteredFiles.size()).isEqualTo(1);
+        assertThat(filteredFiles.get(0).getName()).isEqualTo("test1good");
     }
 
     @Test
@@ -350,6 +349,6 @@ class FileSystemFileServiceTest {
                         null, null,
                         null);
 
-        assertEquals(fileEntityList.size(), filteredFiles.size());
+        assertThat(fileEntityList.size()).isEqualTo(filteredFiles.size());
     }
 }

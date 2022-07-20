@@ -8,13 +8,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 // Arrange, act, assert
 @ExtendWith(MockitoExtension.class)
@@ -40,7 +41,7 @@ class FileSystemFileRepositoryTest {
         FileEntity actual = repository.create(testName, testExtension, testComment, testContent);
 
         // assert
-        assertNotNull(actual);
+        assertThat(actual).isNotNull();
     }
 
     @Test
@@ -57,14 +58,15 @@ class FileSystemFileRepositoryTest {
         Map<UUID, FileEntity> actualMapByGetAll = repository.getAll();
 
         // assert
-        assertEquals(elemsCount, actualMapByGetAll.size());
-        assertEquals(actualMapByCreate, actualMapByGetAll);
+        assertThat(actualMapByGetAll.size()).isEqualTo(elemsCount);
+        assertThat(actualMapByGetAll).isEqualTo(actualMapByCreate);
     }
 
     @Test
     void getAll_shouldThrowException_whenRepositoryEmpty() {
         // act
-        assertThrows(EmptyFileListException.class, () -> repository.getAll());
+        assertThatExceptionOfType(EmptyFileListException.class)
+                .isThrownBy(() -> repository.getAll());
     }
 
     @Test
@@ -73,12 +75,13 @@ class FileSystemFileRepositoryTest {
 
         FileEntity foundEntity = repository.findById(actual.getId());
 
-        assertEquals(foundEntity, actual);
+        assertThat(foundEntity).isEqualTo(actual);
     }
 
     @Test
     void findById_shouldThrowException_whenEntityMissing() {
-        assertThrows(FileNotFoundException.class, () -> repository.findById(hardcodedId));
+        assertThatExceptionOfType(FileNotFoundException.class)
+                .isThrownBy(() -> repository.findById(hardcodedId));
     }
 
     @Test
@@ -113,6 +116,7 @@ class FileSystemFileRepositoryTest {
     void deleteById_shouldDeleteEntity_whenEntityFound() {
         FileEntity actual = repository.create("name", "extension", "comment", new byte[10]);
         FileEntity deletedEntity = repository.deleteById(actual.getId());
-        assertThrows(FileNotFoundException.class, () -> repository.findById(deletedEntity.getId()));
+        assertThatExceptionOfType(FileNotFoundException.class)
+                .isThrownBy(() -> repository.findById(deletedEntity.getId()));
     }
 }
