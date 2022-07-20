@@ -9,12 +9,20 @@ import java.util.UUID;
 @Setter
 @Builder
 public class FileEntity {
-    private UUID id;
-    private Date uploadDate;
-    private Date modifiedDate;
-    private String extension;
-    private String name;
-    private byte[] content;
-    private long size;
-    private String comment;
+    @Builder.Default
+    private UUID id = UUID.randomUUID();
+    @Builder.Default
+    private Date uploadDate = new Date();
+    @Builder.Default
+    private Date modifiedDate = new Date();
+    @Builder.Default
+    private String extension = "";
+    @Builder.Default
+    private String name = "";
+    @Builder.Default
+    private byte[] content = new byte[0];
+    @Builder.Default
+    private long size = 0;
+    @Builder.Default
+    private String comment = "";
 }

@@ -16,9 +16,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -68,60 +68,15 @@ public class FileSystemFileService implements FileService {
                                           Date uploadDateFrom, Date uploadDateTo,
                                           Date modifiedDateFrom, Date modifiedDateTo,
                                           List<String> extensions) {
-        List<FileEntity> fileEntitiesResult = new ArrayList<>(fileRepository.getAll().values());
 
-        if (name != null) {
-            fileEntitiesResult = getFilesFilteredByName(name, fileEntitiesResult);
-        }
-        if (uploadDateFrom != null && uploadDateTo != null) {
-            fileEntitiesResult = getFilesFilteredByUploadDateRange(uploadDateFrom, uploadDateTo, fileEntitiesResult);
-        }
-        if (uploadDateFrom == null && uploadDateTo != null) {
-            fileEntitiesResult = getFilesFilteredByUploadDateRange(new Date(Long.MIN_VALUE), uploadDateTo, fileEntitiesResult);
-        }
-        if (uploadDateFrom != null && uploadDateTo == null) {
-            fileEntitiesResult = getFilesFilteredByUploadDateRange(uploadDateFrom, new Date(Long.MAX_VALUE), fileEntitiesResult);
-        }
-        if (modifiedDateFrom != null && modifiedDateTo != null) {
-            fileEntitiesResult = getFilesFilteredByModifiedDateRange(modifiedDateFrom, modifiedDateTo, fileEntitiesResult);
-        }
-        if (modifiedDateFrom == null && modifiedDateTo != null) {
-            fileEntitiesResult = getFilesFilteredByModifiedDateRange(new Date(Long.MIN_VALUE), modifiedDateTo, fileEntitiesResult);
-        }
-        if (modifiedDateFrom != null && modifiedDateTo == null) {
-            fileEntitiesResult = getFilesFilteredByModifiedDateRange(modifiedDateFrom, new Date(Long.MAX_VALUE), fileEntitiesResult);
-        }
-        if (extensions != null) {
-            fileEntitiesResult = getFilesFilteredByExtensions(extensions, fileEntitiesResult);
-        }
-
-        return fileEntitiesResult
-                .stream()
+        return fileRepository.getAll().values().stream()
+                .filter(entity -> name == null || entity.getName().toLowerCase().contains(name.toLowerCase()))
+                .filter(entity -> uploadDateFrom == null || !entity.getUploadDate().before(uploadDateFrom))
+                .filter(entity -> uploadDateTo == null ||  !entity.getUploadDate().after(uploadDateTo))
+                .filter(entity -> modifiedDateFrom == null || !entity.getModifiedDate().before(modifiedDateFrom))
+                .filter(entity -> modifiedDateTo == null || !entity.getModifiedDate().after(modifiedDateTo))
+                .filter(entity -> extensions == null || extensions.contains(entity.getExtension()))
                 .map(FileDto::of)
-                .collect(Collectors.toList());
-    }
-
-    public List<FileEntity> getFilesFilteredByName(@NonNull String name, @NonNull List<FileEntity> resultList) {
-        return resultList.stream()
-                .filter(entity -> entity.getName().toLowerCase().contains(name.toLowerCase()))
-                .collect(Collectors.toList());
-    }
-
-    public List<FileEntity> getFilesFilteredByUploadDateRange(@NonNull Date fromDate, @NonNull Date toDate, @NonNull List<FileEntity> resultList) {
-        return resultList.stream()
-                .filter(entity -> entity.getUploadDate().after(fromDate) && entity.getUploadDate().before(toDate))
-                .collect(Collectors.toList());
-    }
-
-    public List<FileEntity> getFilesFilteredByModifiedDateRange(@NonNull Date fromDate, @NonNull Date toDate, @NonNull List<FileEntity> resultList) {
-        return resultList.stream()
-                .filter(entity -> entity.getModifiedDate().after(fromDate) && entity.getModifiedDate().before(toDate))
-                .collect(Collectors.toList());
-    }
-
-    public List<FileEntity> getFilesFilteredByExtensions(@NonNull List<String> extensions, @NonNull List<FileEntity> resultList) {
-        return resultList.stream()
-                .filter(entity -> extensions.contains(entity.getExtension()))
                 .collect(Collectors.toList());
     }
 
