@@ -1,6 +1,7 @@
 package com.example.file.vault.service;
 
 import com.example.file.vault.constants.FileVaultConstants;
+import com.example.file.vault.controller.FilesFilterParams;
 import com.example.file.vault.dto.FileDto;
 import com.example.file.vault.dto.FileNameById;
 import com.example.file.vault.entity.FileEntity;
@@ -64,18 +65,15 @@ public class FileSystemFileService implements FileService {
     }
 
     @Override
-    public List<FileDto> getFilteredFiles(String name,
-                                          Date uploadDateFrom, Date uploadDateTo,
-                                          Date modifiedDateFrom, Date modifiedDateTo,
-                                          List<String> extensions) {
+    public List<FileDto> getFilteredFiles(FilesFilterParams filterParams) {
 
         return fileRepository.getAll().values().stream()
-                .filter(entity -> name == null || entity.getName().toLowerCase().contains(name.toLowerCase()))
-                .filter(entity -> uploadDateFrom == null || !entity.getUploadDate().before(uploadDateFrom))
-                .filter(entity -> uploadDateTo == null ||  !entity.getUploadDate().after(uploadDateTo))
-                .filter(entity -> modifiedDateFrom == null || !entity.getModifiedDate().before(modifiedDateFrom))
-                .filter(entity -> modifiedDateTo == null || !entity.getModifiedDate().after(modifiedDateTo))
-                .filter(entity -> extensions == null || extensions.contains(entity.getExtension()))
+                .filter(entity -> filterParams.getName() == null || entity.getName().toLowerCase().contains(filterParams.getName().toLowerCase()))
+                .filter(entity -> filterParams.getUploadDateFrom() == null || !entity.getUploadDate().before(filterParams.getUploadDateFrom()))
+                .filter(entity -> filterParams.getUploadDateTo() == null ||  !entity.getUploadDate().after(filterParams.getUploadDateTo()))
+                .filter(entity -> filterParams.getModifiedDateFrom() == null || !entity.getModifiedDate().before(filterParams.getModifiedDateFrom()))
+                .filter(entity -> filterParams.getModifiedDateTo() == null || !entity.getModifiedDate().after(filterParams.getModifiedDateTo()))
+                .filter(entity -> filterParams.getExtensions() == null || filterParams.getExtensions().contains(entity.getExtension()))
                 .map(FileDto::of)
                 .collect(Collectors.toList());
     }
@@ -87,8 +85,8 @@ public class FileSystemFileService implements FileService {
 
     @Override
     public byte[] downloadZip(List<UUID> ids) {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();) {
-            try (ZipOutputStream zipOut = new ZipOutputStream(bos);) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            try (ZipOutputStream zipOut = new ZipOutputStream(bos)) {
                 zipOut.setLevel(ZipOutputStream.STORED);
 
                 Set<String> names = new HashSet<>();
@@ -103,7 +101,7 @@ public class FileSystemFileService implements FileService {
                     names.add(fullFileName);
 
                     zipOut.putNextEntry(new ZipEntry(fullFileName));
-                    try (ByteArrayInputStream bis = new ByteArrayInputStream(fileToDownload.getContent());) {
+                    try (ByteArrayInputStream bis = new ByteArrayInputStream(fileToDownload.getContent())) {
                         byte[] bytes = new byte[1024];
                         int length;
                         while ((length = bis.read(bytes)) >= 0) {

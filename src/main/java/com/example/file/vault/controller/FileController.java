@@ -4,11 +4,7 @@ import com.example.file.vault.constants.FileVaultConstants;
 import com.example.file.vault.dto.FileDto;
 import com.example.file.vault.dto.FileNameById;
 import com.example.file.vault.entity.FileEntity;
-import com.example.file.vault.exception.EmptyGetParamException;
-import com.example.file.vault.exception.IncorrectDateTypeFilterParamException;
-import com.example.file.vault.exception.IncorrectFilterParamException;
 import com.example.file.vault.service.FileService;
-import com.google.common.base.Strings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -37,10 +33,13 @@ public class FileController {
                                                      @RequestParam(required = false) @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT) Date modifiedDateFrom,
                                                      @RequestParam(required = false) @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT) Date modifiedDateTo,
                                                      @RequestParam(required = false) List<String> extensions) {
-        return ResponseEntity.ok(fileService.getFilteredFiles(name,
-                uploadDateFrom, uploadDateTo,
-                modifiedDateFrom, modifiedDateTo,
-                extensions));
+        FilesFilterParams filterParams = FilesFilterParams.builder()
+                .name(name)
+                .uploadDateFrom(uploadDateFrom).uploadDateTo(uploadDateTo)
+                .modifiedDateFrom(modifiedDateFrom).modifiedDateTo(modifiedDateTo)
+                .extensions(extensions)
+                .build();
+        return ResponseEntity.ok(fileService.getFilteredFiles(filterParams));
     }
 
     @GetMapping("/{id}")

@@ -1,11 +1,11 @@
 package com.example.file.vault.service;
 
+import com.example.file.vault.controller.FilesFilterParams;
 import com.example.file.vault.dto.FileDto;
 import com.example.file.vault.dto.FileNameById;
 import com.example.file.vault.entity.FileEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,15 +27,6 @@ public interface FileService {
 
     List<FileNameById> getNamesById();
 
-    List<FileDto> getFilteredFiles(String name,
-                                   Date uploadDateFrom, Date uploadDateTo,
-                                   Date modifiedDateFrom, Date modifiedDateTo,
-                                   List<String> extensions);
+    List<FileDto> getFilteredFiles(FilesFilterParams filterParams);
 
-//    List<FileDto> getFilesFilteredByName(String mask);
-//
-//    List<FileDto> getFilesFilteredByModifiedDateRange(Date fromDate, Date toDate);
-//    List<FileDto> getFilesFilteredByUploadDateRange(Date fromDate, Date toDate);
-//
-//    List<FileDto> getFilesFilteredByExtensions(List<String> extensions);
 }

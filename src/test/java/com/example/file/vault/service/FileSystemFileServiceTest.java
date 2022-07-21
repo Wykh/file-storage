@@ -1,6 +1,7 @@
 package com.example.file.vault.service;
 
 import com.example.file.vault.constants.FileVaultConstants;
+import com.example.file.vault.controller.FilesFilterParams;
 import com.example.file.vault.dto.FileDto;
 import com.example.file.vault.entity.FileEntity;
 import com.example.file.vault.exception.BadFileTypeException;
@@ -35,7 +36,7 @@ class FileSystemFileServiceTest {
     FileSystemFileService fileService;
 
     @Test
-    void upload_Success_shouldUploadFile_whenAllIsOk() throws IOException {
+    void upload_Success_shouldUploadFile_whenAllIsOk()  {
         // arrange
         String testName = "tname";
         String testExtension = "textension";
@@ -184,10 +185,9 @@ class FileSystemFileServiceTest {
         when(fileRepository.getAll()).thenReturn(fileEntityMap);
 
         List<FileDto> filesFilteredByName =
-                fileService.getFilteredFiles(nameToFind,
-                        null, null,
-                        null, null,
-                        null);
+                fileService.getFilteredFiles(
+                        FilesFilterParams.builder().name(nameToFind).build()
+                );
 
         assertThat(filesFilteredByName.size()).isEqualTo(3);
         filesFilteredByName.forEach((model) -> assertThat(listOfGoodNames.contains(model.getName())).isTrue());
@@ -209,17 +209,16 @@ class FileSystemFileServiceTest {
         when(fileRepository.getAll()).thenReturn(fileEntityMap);
 
         List<FileDto> filesFilteredByUploadDateRange =
-                fileService.getFilteredFiles(null,
-                        uploadDateFrom, null,
-                        null, null,
-                        null);
+                fileService.getFilteredFiles(
+                        FilesFilterParams.builder().uploadDateFrom(uploadDateFrom).build()
+                );
 
         assertThat(filesFilteredByUploadDateRange.size()).isEqualTo(2);
         filesFilteredByUploadDateRange.forEach(model -> assertThat(model.getName()).isEqualTo("good"));
     }
 
     @Test
-    void getFilteredFiles_shouldGetFiles_whenOnlyUploadToFromPassed() {
+    void getFilteredFiles_shouldGetFiles_whenOnlyUploadDateToPassed() {
         Date uploadDateTo = new Date(1000);
         List<FileEntity> fileEntityList = Arrays.asList(
                 FileEntity.builder().name("good").uploadDate(new Date(999)).build(),
@@ -234,13 +233,60 @@ class FileSystemFileServiceTest {
         when(fileRepository.getAll()).thenReturn(fileEntityMap);
 
         List<FileDto> filesFilteredByUploadDateRange =
-                fileService.getFilteredFiles(null,
-                        null, uploadDateTo,
-                        null, null,
-                        null);
+                fileService.getFilteredFiles(
+                        FilesFilterParams.builder().uploadDateTo(uploadDateTo).build()
+                );
 
         assertThat(filesFilteredByUploadDateRange.size()).isEqualTo(2);
         filesFilteredByUploadDateRange.forEach(model -> assertThat(model.getName()).isEqualTo("good"));
+    }
+
+    @Test
+    void getFilteredFiles_shouldGetFiles_whenOnlyModifiedDateFromPassed() {
+        Date modifiedDateFrom = new Date(1500);
+        List<FileEntity> fileEntityList = Arrays.asList(
+                FileEntity.builder().name("good").modifiedDate(new Date(1500)).build(),
+                FileEntity.builder().name("good").modifiedDate(new Date(1501)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(999)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1000)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1250)).build()
+        );
+        Map<UUID, FileEntity> fileEntityMap = fileEntityList
+                .stream()
+                .collect(Collectors.toMap(FileEntity::getId, Function.identity()));
+        when(fileRepository.getAll()).thenReturn(fileEntityMap);
+
+        List<FileDto> filesFilteredByModifiedDateRange =
+                fileService.getFilteredFiles(
+                        FilesFilterParams.builder().modifiedDateFrom(modifiedDateFrom).build()
+                );
+
+        assertThat(filesFilteredByModifiedDateRange.size()).isEqualTo(2);
+        filesFilteredByModifiedDateRange.forEach(model -> assertThat(model.getName()).isEqualTo("good"));
+    }
+
+    @Test
+    void getFilteredFiles_shouldGetFiles_whenOnlyModifiedDateToPassed() {
+        Date modifiedDateTo = new Date(1000);
+        List<FileEntity> fileEntityList = Arrays.asList(
+                FileEntity.builder().name("good").modifiedDate(new Date(999)).build(),
+                FileEntity.builder().name("good").modifiedDate(new Date(1000)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1500)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1501)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1250)).build()
+        );
+        Map<UUID, FileEntity> fileEntityMap = fileEntityList
+                .stream()
+                .collect(Collectors.toMap(FileEntity::getId, Function.identity()));
+        when(fileRepository.getAll()).thenReturn(fileEntityMap);
+
+        List<FileDto> filesFilteredByModifiedDateRange =
+                fileService.getFilteredFiles(
+                        FilesFilterParams.builder().modifiedDateTo(modifiedDateTo).build()
+                );
+
+        assertThat(filesFilteredByModifiedDateRange.size()).isEqualTo(2);
+        filesFilteredByModifiedDateRange.forEach(model -> assertThat(model.getName()).isEqualTo("good"));
     }
 
     @Test
@@ -262,13 +308,40 @@ class FileSystemFileServiceTest {
         when(fileRepository.getAll()).thenReturn(fileEntityMap);
 
         List<FileDto> filesFilteredByUploadDateRange =
-                fileService.getFilteredFiles(null,
-                        uploadDateFrom, uploadDateTo,
-                        null, null,
-                        null);
+                fileService.getFilteredFiles(
+                        FilesFilterParams.builder().uploadDateFrom(uploadDateFrom).uploadDateTo(uploadDateTo).build()
+                );
 
         assertThat(filesFilteredByUploadDateRange.size()).isEqualTo(3);
         filesFilteredByUploadDateRange
+                .forEach(model -> assertThat(model.getName()).isEqualTo("good"));
+    }
+
+    @Test
+    void getFilteredFiles_shouldGetFiles_whenOnlyModifiedDatesPassed() {
+        Date modifiedDateFrom = new Date(1250);
+        Date modifiedDateTo = new Date(1300);
+        List<FileEntity> fileEntityList = Arrays.asList(
+                FileEntity.builder().name("good").modifiedDate(new Date(1250)).build(),
+                FileEntity.builder().name("good").modifiedDate(new Date(1275)).build(),
+                FileEntity.builder().name("good").modifiedDate(new Date(1300)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(999)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1000)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1500)).build(),
+                FileEntity.builder().name("bad").modifiedDate(new Date(1501)).build()
+        );
+        Map<UUID, FileEntity> fileEntityMap = fileEntityList
+                .stream()
+                .collect(Collectors.toMap(FileEntity::getId, Function.identity()));
+        when(fileRepository.getAll()).thenReturn(fileEntityMap);
+
+        List<FileDto> filesFilteredByModifiedDateRange =
+                fileService.getFilteredFiles(
+                        FilesFilterParams.builder().modifiedDateFrom(modifiedDateFrom).modifiedDateTo(modifiedDateTo).build()
+                );
+
+        assertThat(filesFilteredByModifiedDateRange.size()).isEqualTo(3);
+        filesFilteredByModifiedDateRange
                 .forEach(model -> assertThat(model.getName()).isEqualTo("good"));
     }
 
@@ -287,10 +360,9 @@ class FileSystemFileServiceTest {
         when(fileRepository.getAll()).thenReturn(fileEntityMap);
 
         List<FileDto> filesFilteredByExtensions =
-                fileService.getFilteredFiles(null,
-                        null, null,
-                        null, null,
-                        extensionsToFind);
+                fileService.getFilteredFiles(
+                        FilesFilterParams.builder().extensions(extensionsToFind).build()
+                );
 
         assertThat(filesFilteredByExtensions.size()).isEqualTo(2);
         filesFilteredByExtensions
@@ -319,17 +391,23 @@ class FileSystemFileServiceTest {
         when(fileRepository.getAll()).thenReturn(fileEntityMap);
 
         List<FileDto> filteredFiles =
-                fileService.getFilteredFiles(nameToFind,
-                        uploadDateFrom, uploadDateTo,
-                        modifiedDateFrom, modifiedDateTo,
-                        extensionsToFind);
+                fileService.getFilteredFiles(
+                        FilesFilterParams.builder()
+                                .name(nameToFind)
+                                .uploadDateFrom(uploadDateFrom)
+                                .uploadDateTo(uploadDateTo)
+                                .modifiedDateFrom(modifiedDateFrom)
+                                .modifiedDateTo(modifiedDateTo)
+                                .extensions(extensionsToFind)
+                                .build()
+                );
 
         assertThat(filteredFiles.size()).isEqualTo(1);
         assertThat(filteredFiles.get(0).getName()).isEqualTo("test1good");
     }
 
     @Test
-    void getFilteredFiles_shouldGetFilteredFilesAsDtoList_whenSomeDateIsMissing() {
+    void getFilteredFiles_shouldGetFilteredFilesAsDtoList_whenNoParamsPassed() {
         List<FileEntity> fileEntityList = Arrays.asList(
                 FileEntity.builder().id(UUID.randomUUID()).name("test1").extension("jpg").modifiedDate(new Date(1300)).uploadDate(new Date(1270)).build(),
                 FileEntity.builder().id(UUID.randomUUID()).name("test1").extension("jpg").modifiedDate(new Date(1300)).uploadDate(new Date(1300)).build(),
@@ -344,10 +422,9 @@ class FileSystemFileServiceTest {
         when(fileRepository.getAll()).thenReturn(fileEntityMap);
 
         List<FileDto> filteredFiles =
-                fileService.getFilteredFiles(null,
-                        null, null,
-                        null, null,
-                        null);
+                fileService.getFilteredFiles(
+                        FilesFilterParams.builder().build()
+                );
 
         assertThat(fileEntityList.size()).isEqualTo(filteredFiles.size());
     }
