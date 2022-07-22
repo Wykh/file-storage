@@ -4,6 +4,7 @@ import com.example.filevault.constants.FileVaultConstants;
 import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
+import com.example.filevault.service.DataBaseStorageService;
 import com.example.filevault.service.FileSystemFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ import java.util.UUID;
 @Slf4j
 public class FileController {
 
-    public final FileSystemFileService fileService;
+    public final DataBaseStorageService fileService;
 
     @GetMapping
     public ResponseEntity<List<FileDto>> getAllFiles(@RequestParam(required = false) String name,

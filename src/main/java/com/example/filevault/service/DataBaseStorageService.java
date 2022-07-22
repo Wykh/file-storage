@@ -10,6 +10,7 @@ import com.example.filevault.exception.CantReadFileContentException;
 import com.example.filevault.exception.FileNotFoundException;
 import com.example.filevault.exception.TooLargeFileSizeException;
 import com.example.filevault.repository.DateBaseFileRepository;
+import com.example.filevault.specification.FileSpecification;
 import com.example.filevault.util.FileSizeUtils;
 import com.example.filevault.util.FilenameUtils;
 import lombok.RequiredArgsConstructor;
@@ -201,13 +202,7 @@ public class DataBaseStorageService implements FileService {
 
     @Override
     public List<FileDto> getFilteredFiles(FilesFilterParams filterParams) {
-        return fileRepository.findAll().stream()
-                .filter(entity -> filterParams.getName() == null || entity.getName().toLowerCase().contains(filterParams.getName().toLowerCase()))
-                .filter(entity -> filterParams.getUploadDateFrom() == null || !entity.getUploadDate().before(filterParams.getUploadDateFrom()))
-                .filter(entity -> filterParams.getUploadDateTo() == null ||  !entity.getUploadDate().after(filterParams.getUploadDateTo()))
-                .filter(entity -> filterParams.getModifiedDateFrom() == null || !entity.getModifiedDate().before(filterParams.getModifiedDateFrom()))
-                .filter(entity -> filterParams.getModifiedDateTo() == null || !entity.getModifiedDate().after(filterParams.getModifiedDateTo()))
-                .filter(entity -> filterParams.getExtensions() == null || filterParams.getExtensions().contains(entity.getExtension()))
+        return fileRepository.findAll(FileSpecification.getUsers(filterParams)).stream()
                 .map(FileDto::of)
                 .collect(Collectors.toList());
     }
