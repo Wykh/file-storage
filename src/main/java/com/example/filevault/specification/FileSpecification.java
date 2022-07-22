@@ -7,12 +7,11 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class FileSpecification {
 
-    public static Specification<FileEntity> getUsers(FilesFilterParams params) {
+    public static Specification<FileEntity> getFilteredFiles(FilesFilterParams params) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 

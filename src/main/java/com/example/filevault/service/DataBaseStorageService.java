@@ -202,7 +202,7 @@ public class DataBaseStorageService implements FileService {
 
     @Override
     public List<FileDto> getFilteredFiles(FilesFilterParams filterParams) {
-        return fileRepository.findAll(FileSpecification.getUsers(filterParams)).stream()
+        return fileRepository.findAll(FileSpecification.getFilteredFiles(filterParams)).stream()
                 .map(FileDto::of)
                 .collect(Collectors.toList());
     }
