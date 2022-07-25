@@ -4,10 +4,9 @@ import com.example.filevault.constants.FileVaultConstants;
 import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
-import com.example.filevault.service.DataBaseStorageService;
+import com.example.filevault.service.DataBaseFileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,7 +33,7 @@ import java.util.UUID;
 //@Api(value = "Swagger2DemoRestController", description = "REST APIs related to Student Entity!!!!")
 public class FileController {
 
-    public final DataBaseStorageService fileService;
+    public final DataBaseFileService fileService;
 
     @Tag(name = "Upload")
     @ApiResponse(
@@ -46,7 +45,7 @@ public class FileController {
             description = "Return model for uploaded file"
     )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<FileDto> uploadFile(
+    public ResponseEntity<FileDto> uploadOne(
             @Parameter (description = "Select file to upload using form")
             @RequestParam("file")
             MultipartFile file,
@@ -89,7 +88,7 @@ public class FileController {
                 .modifiedDateFrom(modifiedDateFrom).modifiedDateTo(modifiedDateTo)
                 .extensions(extensions)
                 .build();
-        return ResponseEntity.ok(fileService.getFilteredFiles(filterParams));
+        return ResponseEntity.ok(fileService.getAll(filterParams));
     }
 
     @Tag(name = "Multiple files")
@@ -102,8 +101,8 @@ public class FileController {
             )
     )
     @GetMapping("/name")
-    public ResponseEntity<List<FileNameById>> getNamesById() {
-        return ResponseEntity.ok(fileService.getNamesById());
+    public ResponseEntity<List<FileNameById>> getAllNamesAndIds() {
+        return ResponseEntity.ok(fileService.getNames());
     }
 
     @Tag(name = "Single file")
@@ -116,8 +115,8 @@ public class FileController {
             )
     )
     @GetMapping("/{id}")
-    public ResponseEntity<FileDto> getOneFile(@PathVariable UUID id) {
-        return ResponseEntity.ok(fileService.getDTO(id));
+    public ResponseEntity<FileDto> getOne(@PathVariable UUID id) {
+        return ResponseEntity.ok(fileService.getDTOById(id));
     }
 
     @Tag(name = "Single file")
@@ -130,9 +129,9 @@ public class FileController {
             )
     )
     @PutMapping("/{id}")
-    public ResponseEntity<FileDto> updateFile(@PathVariable UUID id,
-                                              @RequestParam("name") String newName,
-                                              @RequestParam("comment") String newComment) {
+    public ResponseEntity<FileDto> updateOne(@PathVariable UUID id,
+                                             @RequestParam("name") String newName,
+                                             @RequestParam("comment") String newComment) {
         return ResponseEntity.ok(fileService.update(id, newName, newComment));
     }
 
@@ -146,7 +145,7 @@ public class FileController {
             )
     )
     @DeleteMapping("/{id}")
-    public ResponseEntity<FileDto> deleteFile(@PathVariable UUID id) {
+    public ResponseEntity<FileDto> deleteOne(@PathVariable UUID id) {
         return ResponseEntity.ok(fileService.delete(id));
     }
 
@@ -179,12 +178,13 @@ public class FileController {
                     mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE),
             description = "Attachment to download"
     )
-    public HttpEntity<byte[]> downloadZip(@RequestParam List<UUID> ids) {
-        byte[] zipContent = fileService.downloadZip(ids);
+    public HttpEntity<byte[]> downloadZipWithFiles(@RequestParam List<UUID> ids) {
+        FileBytesAndNameById zipToDownload = fileService.getZipBytesByIds(ids);
+        String fullFileName = zipToDownload.getName() + '.' + zipToDownload.getExtension();
 
         HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + FileVaultConstants.ZIP_NAME);
+        responseHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fullFileName);
 
-        return new HttpEntity<>(zipContent, responseHeaders);
+        return new HttpEntity<>(zipToDownload.getContent(), responseHeaders);
     }
 }

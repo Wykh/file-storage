@@ -4,8 +4,10 @@ import com.example.filevault.exception.BadFileTypeException;
 import com.example.filevault.exception.EmptyFileNameException;
 import com.google.common.base.Strings;
 
+import java.util.Set;
+
 // Class FilenameUtils in commons.apache.org
-public class FilenameUtils {
+public class FileNameUtils {
 
     private static int getLastPointIndexWithErrorChecking(String fullFileName) {
         if (Strings.isNullOrEmpty(fullFileName)) {
@@ -29,6 +31,16 @@ public class FilenameUtils {
         int dotIndex = getLastPointIndexWithErrorChecking(fullFileName);
 
         return fullFileName.substring(dotIndex + 1);
+    }
+
+    public static String getUniqueFileName(Set<String> names, String name, String extension) {
+        String fullFileName = name + '.' + extension;
+        int count = 0;
+        while (names.contains(fullFileName)) {
+            fullFileName = name + "_" + ++count + '.' + extension;
+        }
+        names.add(fullFileName);
+        return fullFileName;
     }
 
     public static String getFullFileName(String fileName, String fileExtension) {
