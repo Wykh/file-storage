@@ -9,6 +9,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface DataBaseFileRepository extends JpaRepository<FileEntity, UUID>, JpaSpecificationExecutor<FileEntity> {
-    List<FileEntity> findAll();
-    public List<FileEntity> findAll(Specification<FileEntity> spec);
+
 }
