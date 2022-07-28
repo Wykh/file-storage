@@ -1,4 +1,4 @@
-package com.example.filevault.controller;
+package com.example.filevault.specification;
 
 import lombok.Builder;
 import lombok.Getter;

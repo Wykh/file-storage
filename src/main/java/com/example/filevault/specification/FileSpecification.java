@@ -1,6 +1,5 @@
 package com.example.filevault.specification;
 
-import com.example.filevault.controller.FilesFilterParams;
 import com.example.filevault.entity.FileEntity;
 import org.springframework.data.jpa.domain.Specification;
 

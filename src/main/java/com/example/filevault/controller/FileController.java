@@ -5,6 +5,7 @@ import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
 import com.example.filevault.service.DataBaseFileService;
+import com.example.filevault.specification.FilesFilterParams;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -19,6 +20,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,7 +33,6 @@ import java.util.UUID;
 @RequestMapping("/api/file")
 @RequiredArgsConstructor
 @Slf4j
-//@Api(value = "Swagger2DemoRestController", description = "REST APIs related to Student Entity!!!!")
 public class FileController {
 
     public final DataBaseFileService fileService;
@@ -82,6 +84,18 @@ public class FileController {
             @Parameter(description = "List of extensions. For example: `png,svg,jpg`")
             @RequestParam(required = false)
             List<String> extensions) {
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails)principal).toString();
+        } else {
+            username = principal.toString();
+        }
+
+        log.info(username + " current username");
+
         FilesFilterParams filterParams = FilesFilterParams.builder()
                 .name(name)
                 .uploadDateFrom(uploadDateFrom).uploadDateTo(uploadDateTo)

@@ -1,7 +1,7 @@
 package com.example.filevault.service;
 
 import com.example.filevault.constants.FileVaultConstants;
-import com.example.filevault.controller.FilesFilterParams;
+import com.example.filevault.specification.FilesFilterParams;
 import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -44,7 +43,7 @@ public class DataBaseFileService implements FileService {
         String fileName = FileNameUtils.getNameWithoutExtension(fullFileName);
         String fileExtension = FileNameUtils.getExtension(fullFileName);
 
-        FileEntity fullFilledNewEntity = fileRepository.save( // id, dates and other will be filled by database
+        FileEntity fullFilledNewEntity = fileRepository.save(
                 FileEntity.builder()
                         .name(fileName)
                         .extension(fileExtension)

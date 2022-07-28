@@ -1,4 +1,4 @@
-package com.example.filevault;
+package com.example.filevault.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
