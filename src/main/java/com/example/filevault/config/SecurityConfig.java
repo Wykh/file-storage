@@ -13,8 +13,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static com.example.filevault.config.UserPermission.FILE_READ;
-import static com.example.filevault.config.UserPermission.FILE_WRITE;
+import static com.example.filevault.config.UserSecurityPermission.FILE_READ;
+import static com.example.filevault.config.UserSecurityPermission.FILE_WRITE;
 
 @Configuration
 @EnableWebSecurity

@@ -6,20 +6,20 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.example.filevault.config.UserPermission.*;
+import static com.example.filevault.config.UserSecurityPermission.*;
 
-public enum UserRole {
+public enum UserSecurityRole {
     USER(Sets.newHashSet(FILE_READ)),
     ADMIN(Sets.newHashSet(FILE_READ, FILE_WRITE)),
     SUPERADMIN(Sets.newHashSet(FILE_READ, FILE_WRITE, USER_READ, USER_WRITE));
 
-    private final Set<UserPermission> permissions;
+    private final Set<UserSecurityPermission> permissions;
 
-    UserRole(Set<UserPermission> permissions) {
+    UserSecurityRole(Set<UserSecurityPermission> permissions) {
         this.permissions = permissions;
     }
 
-    public Set<UserPermission> getPermissions() {
+    public Set<UserSecurityPermission> getPermissions() {
         return permissions;
     }
 

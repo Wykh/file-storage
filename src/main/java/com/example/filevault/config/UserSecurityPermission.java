@@ -1,6 +1,6 @@
 package com.example.filevault.config;
 
-public enum UserPermission {
+public enum UserSecurityPermission {
     FILE_READ("file:read"),
     FILE_WRITE("file:write"),
     USER_READ("user:read"),
@@ -8,7 +8,7 @@ public enum UserPermission {
 
     private final String permission;
 
-    UserPermission(String permission) {
+    UserSecurityPermission(String permission) {
         this.permission = permission;
     }
 
