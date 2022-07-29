@@ -144,7 +144,7 @@ class FileServiceImplTest {
         when(fileRepository.save(any())).thenReturn(afterUpdate);
 
         // act
-        FileDto actualFileDto = fileService.update(idSample, nameAfter, commentAfter);
+        FileDto actualFileDto = fileService.update(idSample, nameAfter, commentAfter, false);
 
         // assert
         verify(fileRepository).save(afterUpdate);

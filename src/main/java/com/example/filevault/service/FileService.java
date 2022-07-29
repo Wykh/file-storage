@@ -16,7 +16,7 @@ public interface FileService {
     FileDto getDTOById(UUID id);
     FileBytesAndNameById getBytesAndNameById(UUID id);
     FileBytesAndNameById getZipBytesByIds(List<UUID> id);
-    FileDto update(UUID id, String newFileName, String newComment);
+    FileDto update(UUID id, String newFileName, String newComment, Boolean isPublic);
     FileDto delete(UUID id);
 
 }

@@ -1,21 +1,26 @@
 package com.example.filevault.service;
 
+import com.example.filevault.config.UserSecurityPermission;
+import com.example.filevault.config.UserSecurityRole;
 import com.example.filevault.constants.FileVaultConstants;
-import com.example.filevault.entity.UserEntity;
-import com.example.filevault.repository.UserRepository;
-import com.example.filevault.specification.FilesFilterParams;
 import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
 import com.example.filevault.entity.FileEntity;
+import com.example.filevault.entity.UserEntity;
 import com.example.filevault.exception.FileNotFoundException;
 import com.example.filevault.exception.TooLargeFileSizeException;
 import com.example.filevault.repository.FileRepository;
+import com.example.filevault.repository.UserRepository;
 import com.example.filevault.specification.FileSpecification;
+import com.example.filevault.specification.FilesFilterParams;
 import com.example.filevault.util.FileNameUtils;
 import com.example.filevault.util.FileSizeUtils;
 import com.example.filevault.util.FileWorkUtils;
+import com.example.filevault.util.UserWorkUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,8 +32,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import static com.example.filevault.config.UserSecurityPermission.*;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +62,8 @@ public class FileServiceImpl implements FileService {
                         .comment(passedComment)
                         .contentFolderPath(FileVaultConstants.STORAGE_LOCATION)
                         .size(file.getSize())
+                        .user(getUserWhoSendRequest())
+                        .isPublic(false)
                         .build()
         );
         Path destinationFilePath = rootLocation.resolve(
@@ -66,42 +76,32 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FileDto> getAll(FilesFilterParams filterParams) {
-        Optional<UserEntity> optionalUserEntity = userRepository.findByName(filterParams.getOwnerFileUsername());
-        UserEntity foundUserEntity = optionalUserEntity.orElseThrow(() ->
-                new UsernameNotFoundException(String.format("Username %s not found", filterParams.getOwnerFileUsername()))
-        );
-        filterParams.setOwnerFileId(foundUserEntity.getId());
-        filterParams.setOwner(foundUserEntity);
-        return fileRepository.findAll(FileSpecification.getFilteredFiles(filterParams))
-                .stream()
+        return getFileEntityStream(filterParams)
                 .map(FileDto::of)
                 .collect(Collectors.toList());
     }
-
     @Override
     public List<FileNameById> getNames() {
-        return fileRepository.findAll()
-                .stream()
+        FilesFilterParams emptyParams = FilesFilterParams.builder().build();
+        return getFileEntityStream(emptyParams)
                 .map(FileNameById::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
     public FileDto getDTOById(UUID id) {
-        return FileDto.of(fileRepository.findById(id)
-                .orElseThrow(() -> new FileNotFoundException("File not found :("))
-        );
+        FileEntity foundEntity = getFileEntity(id, true);
+        return FileDto.of(foundEntity);
     }
 
     @Override
     public FileBytesAndNameById getBytesAndNameById(UUID id) {
-        FileEntity foundFileEntity = fileRepository.findById(id)
-                .orElseThrow(() -> new FileNotFoundException("File not found :("));
+        FileEntity foundEntity = getFileEntity(id, true);
 
-        Path fileLocation = rootLocation.resolve(foundFileEntity.getId().toString() + '.' + foundFileEntity.getExtension());
+        Path fileLocation = rootLocation.resolve(foundEntity.getId().toString() + '.' + foundEntity.getExtension());
         byte[] fileContent = FileWorkUtils.getFileContent(fileLocation);
 
-        return FileBytesAndNameById.of(foundFileEntity, fileContent);
+        return FileBytesAndNameById.of(foundEntity, fileContent);
     }
 
     @Override
@@ -127,23 +127,21 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public FileDto update(UUID id, String newFileName, String newComment) {
-        Optional<FileEntity> foundFileEntity = fileRepository.findById(id);
-        if (foundFileEntity.isEmpty())
-            throw new FileNotFoundException("File not found. Cant update the id");
-        FileEntity updatedFileEntity = foundFileEntity.get();
-        updatedFileEntity.setName(newFileName);
-        updatedFileEntity.setComment(newComment);
-        return FileDto.of(fileRepository.save(updatedFileEntity));
+    public FileDto update(UUID id, String newFileName, String newComment, Boolean isPublic) {
+        FileEntity foundEntity = getFileEntity(id, false, CHANGE_FILE_ACCESS);
+
+        foundEntity.setName(newFileName);
+        foundEntity.setComment(newComment);
+        foundEntity.setPublic(isPublic);
+        return FileDto.of(fileRepository.save(foundEntity));
     }
 
     @Override
     public FileDto delete(UUID id) {
-        Optional<FileEntity> optionalFileEntity = fileRepository.findById(id);
-        if (optionalFileEntity.isEmpty())
-            throw new FileNotFoundException("File not found. Cant update the id");
-        FileEntity foundFileEntity = optionalFileEntity.get();
-        Path fileLocation = rootLocation.resolve(foundFileEntity.getId().toString() + '.' + foundFileEntity.getExtension());
+        FileEntity foundFileEntity = getFileEntity(id, false, DELETE_PUBLIC_FILE);
+
+        Path fileLocation = rootLocation.resolve(
+                foundFileEntity.getId().toString() + '.' + foundFileEntity.getExtension());
         fileRepository.deleteById(id);
         try {
             Files.delete(fileLocation);
@@ -153,5 +151,34 @@ public class FileServiceImpl implements FileService {
         FileDto deletedDto = FileDto.of(foundFileEntity);
         deletedDto.setDownloadUrl("");
         return deletedDto;
+    }
+
+    private Stream<FileEntity> getFileEntityStream(FilesFilterParams filterParams) {
+        return fileRepository.findAll(FileSpecification.getFilteredFiles(filterParams,
+                        getUserWhoSendRequest()))
+                .stream();
+    }
+
+    private FileEntity getFileEntity(UUID id, boolean canBePublic, UserSecurityPermission... permissions) {
+        FileEntity foundEntity = fileRepository.findById(id)
+                .orElseThrow(() -> new FileNotFoundException("File not found :("));
+
+        UserEntity userWhoSendRequest = getUserWhoSendRequest();
+        UserSecurityRole userSecurityRole = UserWorkUtils.getUserSecurityRole(userWhoSendRequest.getRole().getRole());
+        if (!(canBePublic && foundEntity.isPublic()) &&
+                Arrays.stream(permissions).noneMatch(permission
+                        -> userSecurityRole.getPermissions().contains(permission)) &&
+                !foundEntity.getUser().equals(userWhoSendRequest))
+            throw new UsernameNotFoundException("Can't get access to this file");
+        return foundEntity;
+    }
+
+    private UserEntity getUserWhoSendRequest() {
+        String username = ((UserDetails) SecurityContextHolder
+                .getContext().getAuthentication().getPrincipal()).getUsername();
+
+        return userRepository.findByName(username).orElseThrow(() ->
+                new UsernameNotFoundException(String.format("Username %s not found", username))
+        );
     }
 }

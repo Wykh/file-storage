@@ -84,24 +84,11 @@ public class FileController {
             @Parameter(description = "List of extensions. For example: `png,svg,jpg`")
             @RequestParam(required = false)
             List<String> extensions) {
-
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        String username;
-        if (principal instanceof UserDetails) {
-            username = ((UserDetails)principal).getUsername().toString();
-        } else {
-            username = principal.toString();
-        }
-
-        log.info(username + " current username");
-
         FilesFilterParams filterParams = FilesFilterParams.builder()
                 .name(name)
                 .uploadDateFrom(uploadDateFrom).uploadDateTo(uploadDateTo)
                 .modifiedDateFrom(modifiedDateFrom).modifiedDateTo(modifiedDateTo)
                 .extensions(extensions)
-                .ownerFileUsername(username)
                 .build();
         return ResponseEntity.ok(fileService.getAll(filterParams));
     }
@@ -146,8 +133,9 @@ public class FileController {
     @PutMapping("/{id}")
     public ResponseEntity<FileDto> updateOne(@PathVariable UUID id,
                                              @RequestParam("name") String newName,
-                                             @RequestParam("comment") String newComment) {
-        return ResponseEntity.ok(fileService.update(id, newName, newComment));
+                                             @RequestParam("comment") String newComment,
+                                             @RequestParam("isPublic") Boolean isPublic) {
+        return ResponseEntity.ok(fileService.update(id, newName, newComment, isPublic));
     }
 
     @Tag(name = "Single file")

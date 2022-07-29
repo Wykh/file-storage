@@ -8,7 +8,8 @@ CREATE TABLE file_entity
     modified_date       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     content_folder_path VARCHAR(255)             NOT NULL DEFAULT 'upload-dir',
     size                int8                     NOT NULL,
-    user_id             int8,
+    user_id             int8                    NOT NULL,
+    is_public            bool                    NOT NULL DEFAULT FALSE,
     PRIMARY KEY (id)
 );
 

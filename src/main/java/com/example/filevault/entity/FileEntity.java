@@ -50,6 +50,11 @@ public class FileEntity {
     private long size;
 
     @ManyToOne
-    @JoinColumn(name="user_id", referencedColumnName = "id")
+//    @Column(nullable = false)
+    @JoinColumn(name="user_id", referencedColumnName = "id", nullable = false)
     private UserEntity user;
+
+    @Column(nullable = false)
+    private boolean isPublic;
+
 }

@@ -18,7 +18,4 @@ public class FilesFilterParams {
     Date modifiedDateFrom;
     Date modifiedDateTo;
     List<String> extensions;
-    String ownerFileUsername;
-    Long ownerFileId;
-    UserEntity owner;
 }

@@ -3,6 +3,7 @@ package com.example.filevault.service;
 import com.example.filevault.config.UserSecurityRole;
 import com.example.filevault.entity.UserEntity;
 import com.example.filevault.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,8 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static com.example.filevault.config.UserSecurityRole.ADMIN;
-import static com.example.filevault.config.UserSecurityRole.USER;
+import static com.example.filevault.config.UserSecurityRole.*;
+import static com.example.filevault.util.UserWorkUtils.getUserSecurityRole;
 
 @Service
 public class UserServiceImpl implements UserDetailsService {
@@ -35,20 +36,12 @@ public class UserServiceImpl implements UserDetailsService {
                 new UsernameNotFoundException(String.format("Username %s not found", username))
         );
         String role = foundUserEntity.getRole().getRole();
-        UserSecurityRole enumRole;
-        switch (role) {
-            case "ADMIN":
-                enumRole = ADMIN;
-                break;
-            case "USER":
-                enumRole = USER;
-            default:
-                enumRole = USER;
-        }
+        UserSecurityRole enumRole = getUserSecurityRole(role);
         return new User(
                 foundUserEntity.getName(),
                 passwordEncoder.encode(foundUserEntity.getPassword()),
                 enumRole.getGrantedAuthorities()
         );
     }
+
 }
