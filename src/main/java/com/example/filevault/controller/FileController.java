@@ -4,7 +4,7 @@ import com.example.filevault.constants.FileVaultConstants;
 import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
-import com.example.filevault.service.DataBaseFileService;
+import com.example.filevault.service.FileServiceImpl;
 import com.example.filevault.specification.FilesFilterParams;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,7 +35,7 @@ import java.util.UUID;
 @Slf4j
 public class FileController {
 
-    public final DataBaseFileService fileService;
+    public final FileServiceImpl fileService;
 
     @Tag(name = "Upload")
     @ApiResponse(
@@ -89,7 +89,7 @@ public class FileController {
 
         String username;
         if (principal instanceof UserDetails) {
-            username = ((UserDetails)principal).toString();
+            username = ((UserDetails)principal).getUsername().toString();
         } else {
             username = principal.toString();
         }
@@ -101,6 +101,7 @@ public class FileController {
                 .uploadDateFrom(uploadDateFrom).uploadDateTo(uploadDateTo)
                 .modifiedDateFrom(modifiedDateFrom).modifiedDateTo(modifiedDateTo)
                 .extensions(extensions)
+                .ownerFileUsername(username)
                 .build();
         return ResponseEntity.ok(fileService.getAll(filterParams));
     }

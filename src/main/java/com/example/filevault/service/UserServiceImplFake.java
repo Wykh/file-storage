@@ -1,6 +1,6 @@
 package com.example.filevault.service;
 
-import com.example.filevault.repository.UserRepository;
+import com.example.filevault.repository.UserDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -8,18 +8,18 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserService implements UserDetailsService {
+public class UserServiceImplFake implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final UserDao userDao;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserServiceImplFake(UserDao userDao) {
+        this.userDao = userDao;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository
+        return userDao
                 .selectApplicationUserByUsername(username)
                 .orElseThrow(() ->
                         new UsernameNotFoundException(String.format("Username %s not found", username))

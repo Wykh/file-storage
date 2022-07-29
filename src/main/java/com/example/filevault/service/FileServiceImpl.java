@@ -1,6 +1,8 @@
 package com.example.filevault.service;
 
 import com.example.filevault.constants.FileVaultConstants;
+import com.example.filevault.entity.UserEntity;
+import com.example.filevault.repository.UserRepository;
 import com.example.filevault.specification.FilesFilterParams;
 import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
@@ -8,12 +10,13 @@ import com.example.filevault.dto.FileNameById;
 import com.example.filevault.entity.FileEntity;
 import com.example.filevault.exception.FileNotFoundException;
 import com.example.filevault.exception.TooLargeFileSizeException;
-import com.example.filevault.repository.DataBaseFileRepository;
+import com.example.filevault.repository.FileRepository;
 import com.example.filevault.specification.FileSpecification;
 import com.example.filevault.util.FileNameUtils;
 import com.example.filevault.util.FileSizeUtils;
 import com.example.filevault.util.FileWorkUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,9 +32,10 @@ import java.util.zip.ZipOutputStream;
 
 @Service
 @RequiredArgsConstructor
-public class DataBaseFileService implements FileService {
+public class FileServiceImpl implements FileService {
 
-    private final DataBaseFileRepository fileRepository;
+    private final FileRepository fileRepository;
+    private final UserRepository userRepository;
     private final Path rootLocation = Paths.get(FileVaultConstants.STORAGE_LOCATION);
 
     @Override
@@ -62,6 +66,12 @@ public class DataBaseFileService implements FileService {
 
     @Override
     public List<FileDto> getAll(FilesFilterParams filterParams) {
+        Optional<UserEntity> optionalUserEntity = userRepository.findByName(filterParams.getOwnerFileUsername());
+        UserEntity foundUserEntity = optionalUserEntity.orElseThrow(() ->
+                new UsernameNotFoundException(String.format("Username %s not found", filterParams.getOwnerFileUsername()))
+        );
+        filterParams.setOwnerFileId(foundUserEntity.getId());
+        filterParams.setOwner(foundUserEntity);
         return fileRepository.findAll(FileSpecification.getFilteredFiles(filterParams))
                 .stream()
                 .map(FileDto::of)

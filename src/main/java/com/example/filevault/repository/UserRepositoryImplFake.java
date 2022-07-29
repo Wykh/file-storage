@@ -1,7 +1,7 @@
 package com.example.filevault.repository;
 
-import com.example.filevault.entity.UserEntity;
 import com.google.common.collect.Lists;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
@@ -12,50 +12,38 @@ import static com.example.filevault.config.ApplicationUserRole.ADMIN;
 import static com.example.filevault.config.ApplicationUserRole.USER;
 
 @Repository("fake")
-public class FakeUserRepositoryImpl implements UserRepository{
+public class UserRepositoryImplFake implements UserDao {
 
     private final PasswordEncoder passwordEncoder;
 
-    public FakeUserRepositoryImpl(PasswordEncoder passwordEncoder) {
+    public UserRepositoryImplFake(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    public Optional<UserEntity> selectApplicationUserByUsername(String username) {
+    public Optional<User> selectApplicationUserByUsername(String username) {
         return getApplicationUsers()
                 .stream()
                 .filter(applicationUser -> username.equals(applicationUser.getUsername()))
                 .findFirst();
     }
 
-    private List<UserEntity> getApplicationUsers() {
+    private List<User> getApplicationUsers() {
         return Lists.newArrayList(
-                new UserEntity(
+                new User(
                         "annasmith",
                         passwordEncoder.encode("password"),
-                        USER.getGrantedAuthorities(),
-                        true,
-                        true,
-                        true,
-                        true
+                        USER.getGrantedAuthorities()
                 ),
-                new UserEntity(
+                new User(
                         "linda",
                         passwordEncoder.encode("password"),
-                        ADMIN.getGrantedAuthorities(),
-                        true,
-                        true,
-                        true,
-                        true
+                        ADMIN.getGrantedAuthorities()
                 ),
-                new UserEntity(
+                new User(
                         "tom",
                         passwordEncoder.encode("password"),
-                        ADMIN.getGrantedAuthorities(),
-                        true,
-                        true,
-                        true,
-                        true
+                        ADMIN.getGrantedAuthorities()
                 )
         );
     }

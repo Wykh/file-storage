@@ -1,5 +1,6 @@
 package com.example.filevault.specification;
 
+import com.example.filevault.entity.UserEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,4 +18,7 @@ public class FilesFilterParams {
     Date modifiedDateFrom;
     Date modifiedDateTo;
     List<String> extensions;
+    String ownerFileUsername;
+    Long ownerFileId;
+    UserEntity owner;
 }

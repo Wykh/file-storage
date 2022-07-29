@@ -33,6 +33,10 @@ public class FileSpecification {
                 Expression<String> parentExpression = root.get("extension");
                 predicates.add(parentExpression.in(params.getExtensions()));
             }
+            if (params.getOwnerFileUsername() != null && params.getOwnerFileId() != null) {
+//                predicates.add(criteriaBuilder.equal(root.get("userId"), params.getOwnerFileId()));
+                predicates.add(criteriaBuilder.equal(root.get("user"), params.getOwner()));
+            }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

@@ -48,4 +48,8 @@ public class FileEntity {
 
     @Column(nullable = false, updatable=false)
     private long size;
+
+    @ManyToOne
+    @JoinColumn(name="user_id", referencedColumnName = "id")
+    private UserEntity user;
 }
