@@ -1,6 +1,6 @@
 package com.example.filevault.service;
 
-import com.example.filevault.config.ApplicationUserRole;
+import com.example.filevault.config.UserRole;
 import com.example.filevault.entity.UserEntity;
 import com.example.filevault.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static com.example.filevault.config.ApplicationUserRole.ADMIN;
-import static com.example.filevault.config.ApplicationUserRole.USER;
+import static com.example.filevault.config.UserRole.ADMIN;
+import static com.example.filevault.config.UserRole.USER;
 
 @Service
 public class UserServiceImpl implements UserDetailsService {
@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserDetailsService {
                 new UsernameNotFoundException(String.format("Username %s not found", username))
         );
         String role = foundUserEntity.getRole().getRole();
-        ApplicationUserRole enumRole;
+        UserRole enumRole;
         switch (role) {
             case "ADMIN":
                 enumRole = ADMIN;

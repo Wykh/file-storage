@@ -13,18 +13,18 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static com.example.filevault.config.ApplicationUserPermission.FILE_READ;
-import static com.example.filevault.config.ApplicationUserPermission.FILE_WRITE;
+import static com.example.filevault.config.UserPermission.FILE_READ;
+import static com.example.filevault.config.UserPermission.FILE_WRITE;
 
 @Configuration
 @EnableWebSecurity
-public class ApplicationSecurityConfig {
+public class SecurityConfig {
 
     private final PasswordEncoder passwordEncoder;
     private final UserServiceImpl userService;
 
     @Autowired
-    public ApplicationSecurityConfig(PasswordEncoder passwordEncoder, UserServiceImpl userService) {
+    public SecurityConfig(PasswordEncoder passwordEncoder, UserServiceImpl userService) {
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
     }
