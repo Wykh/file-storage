@@ -24,4 +24,5 @@ public class UserEntity {
     @ManyToOne
     @JoinColumn(name="role_id", referencedColumnName="id")
     private RoleEntity role;
+    private boolean isBlocked;
 }

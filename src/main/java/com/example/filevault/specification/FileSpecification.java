@@ -1,6 +1,5 @@
 package com.example.filevault.specification;
 
-import com.example.filevault.config.UserSecurityPermission;
 import com.example.filevault.config.UserSecurityRole;
 import com.example.filevault.entity.FileEntity;
 import com.example.filevault.entity.UserEntity;
@@ -8,10 +7,8 @@ import com.example.filevault.util.UserWorkUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.example.filevault.config.UserSecurityPermission.FILE_READ_ALL;
@@ -44,7 +41,7 @@ public class FileSpecification {
             }
 
             if (userToFilter != null) {
-                UserSecurityRole userSecurityRole = UserWorkUtils.getUserSecurityRole(userToFilter.getRole().getRole());
+                UserSecurityRole userSecurityRole = UserWorkUtils.getUserSecurityRole(userToFilter.getRole().getName());
                 boolean haveUserPermission = userSecurityRole.getPermissions().contains(FILE_READ_ALL);
 
                 if (!haveUserPermission) {

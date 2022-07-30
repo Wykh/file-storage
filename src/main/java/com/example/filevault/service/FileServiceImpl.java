@@ -36,7 +36,8 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static com.example.filevault.config.UserSecurityPermission.*;
+import static com.example.filevault.config.UserSecurityPermission.CHANGE_FILE_ACCESS;
+import static com.example.filevault.config.UserSecurityPermission.DELETE_PUBLIC_FILE;
 
 @Service
 @RequiredArgsConstructor
@@ -80,6 +81,7 @@ public class FileServiceImpl implements FileService {
                 .map(FileDto::of)
                 .collect(Collectors.toList());
     }
+
     @Override
     public List<FileNameById> getNames() {
         FilesFilterParams emptyParams = FilesFilterParams.builder().build();
@@ -155,8 +157,7 @@ public class FileServiceImpl implements FileService {
 
     private Stream<FileEntity> getFileEntityStream(FilesFilterParams filterParams) {
         return fileRepository.findAll(FileSpecification.getFilteredFiles(filterParams,
-                        getUserWhoSendRequest()))
-                .stream();
+                getUserWhoSendRequest())).stream();
     }
 
     private FileEntity getFileEntity(UUID id, boolean canBePublic, UserSecurityPermission... permissions) {
@@ -164,7 +165,7 @@ public class FileServiceImpl implements FileService {
                 .orElseThrow(() -> new FileNotFoundException("File not found :("));
 
         UserEntity userWhoSendRequest = getUserWhoSendRequest();
-        UserSecurityRole userSecurityRole = UserWorkUtils.getUserSecurityRole(userWhoSendRequest.getRole().getRole());
+        UserSecurityRole userSecurityRole = UserWorkUtils.getUserSecurityRole(userWhoSendRequest.getRole().getName());
         if (!(canBePublic && foundEntity.isPublic()) &&
                 Arrays.stream(permissions).noneMatch(permission
                         -> userSecurityRole.getPermissions().contains(permission)) &&

@@ -13,8 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static com.example.filevault.config.UserSecurityPermission.FILE_READ;
-import static com.example.filevault.config.UserSecurityPermission.FILE_WRITE;
+import static com.example.filevault.config.UserSecurityPermission.*;
 
 @Configuration
 @EnableWebSecurity
@@ -55,6 +54,8 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.POST, "/api/file/**").hasAnyAuthority(FILE_WRITE.getPermission())
                 .antMatchers(HttpMethod.PUT, "/api/file/**").hasAnyAuthority(FILE_WRITE.getPermission())
                 .antMatchers(HttpMethod.DELETE, "/api/file/**").hasAnyAuthority(FILE_WRITE.getPermission())
+                .antMatchers(HttpMethod.POST, "/api/name").permitAll()
+                .antMatchers(HttpMethod.PUT, "/api/name/*").hasAnyAuthority(CHANGE_ROLE.getPermission(), BLOCK.getPermission())
                 .and()
                 .csrf().disable()
                 .formLogin().disable();
