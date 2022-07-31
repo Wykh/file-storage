@@ -2,9 +2,11 @@ package com.example.filevault.service;
 
 import com.example.filevault.config.UserSecurityRole;
 import com.example.filevault.dto.UserDto;
+import com.example.filevault.entity.ChangeRoleHistoryEntity;
 import com.example.filevault.entity.RoleEntity;
 import com.example.filevault.entity.UserEntity;
 import com.example.filevault.exception.FileNotFoundException;
+import com.example.filevault.repository.ChangeRoleHistoryRepository;
 import com.example.filevault.repository.RoleRepository;
 import com.example.filevault.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
 import static com.example.filevault.config.UserSecurityPermission.BLOCK;
 import static com.example.filevault.config.UserSecurityPermission.CHANGE_ROLE;
@@ -28,6 +30,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ChangeRoleHistoryRepository changeRoleHistoryRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -56,19 +59,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateOne(String username, String newRoleAsString, Boolean isBlocked) {
-        UserEntity foundUserEntity = getUserEntity(username);
-        UserEntity userWhoSendRequest = getUserWhoSendRequest();
-        UserSecurityRole userSecurityRole = getUserSecurityRole(userWhoSendRequest.getRole().getName());
+        UserEntity targetUser = getUserEntity(username);
+        UserEntity actorUser = getUserWhoSendRequest();
+        UserSecurityRole userSecurityRole = getUserSecurityRole(actorUser.getRole().getName());
 
-        if (newRoleAsString != null && userSecurityRole.getPermissions().contains(CHANGE_ROLE)) {
+        List<ChangeRoleHistoryEntity> allByTarget = changeRoleHistoryRepository.findAllByTarget(actorUser);
+        List<UserEntity> actorList = allByTarget.stream().map(ChangeRoleHistoryEntity::getActor).toList();
+
+        if (newRoleAsString != null
+                && userSecurityRole.getPermissions().contains(CHANGE_ROLE)
+                && !actorList.contains(targetUser)) {
             UserSecurityRole newRole = getUserSecurityRole(newRoleAsString);
-            foundUserEntity.setRole(getRoleEntity(newRole));
+            RoleEntity newRoleEntity = getRoleEntity(newRole);
+            ChangeRoleHistoryEntity newChangeRoleHistoryEntity =
+                    new ChangeRoleHistoryEntity(actorUser, targetUser, newRoleEntity);
+            changeRoleHistoryRepository.save(newChangeRoleHistoryEntity);
+            targetUser.setRole(getRoleEntity(newRole));
         }
-        if (isBlocked != null && userSecurityRole.getPermissions().contains(BLOCK)) {
-            foundUserEntity.setBlocked(isBlocked);
+        if (isBlocked != null
+                && !actorList.contains(targetUser)
+                && userSecurityRole.getPermissions().contains(BLOCK)) {
+            targetUser.setBlocked(isBlocked);
         }
-        userRepository.save(foundUserEntity);
-        return UserDto.of(foundUserEntity);
+        userRepository.save(targetUser);
+        return UserDto.of(targetUser);
     }
 
     private UserEntity getUserEntity(String name) {
