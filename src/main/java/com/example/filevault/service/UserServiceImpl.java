@@ -1,17 +1,15 @@
 package com.example.filevault.service;
 
 import com.example.filevault.config.UserSecurityRole;
+import com.example.filevault.dao.UserDao;
 import com.example.filevault.dto.UserDto;
 import com.example.filevault.entity.ChangeRoleHistoryEntity;
 import com.example.filevault.entity.RoleEntity;
 import com.example.filevault.entity.UserEntity;
-import com.example.filevault.exception.FileNotFoundException;
 import com.example.filevault.repository.ChangeRoleHistoryRepository;
 import com.example.filevault.repository.RoleRepository;
 import com.example.filevault.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +20,7 @@ import java.util.List;
 import static com.example.filevault.config.UserSecurityPermission.BLOCK;
 import static com.example.filevault.config.UserSecurityPermission.CHANGE_ROLE;
 import static com.example.filevault.config.UserSecurityRole.USER;
-import static com.example.filevault.util.UserWorkUtils.getCurrentUser;
+import static com.example.filevault.util.UserWorkUtils.getCurrentUserEntity;
 
 @Service
 @RequiredArgsConstructor
@@ -36,13 +34,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity foundUserEntity = getUserEntity(username);
-        String role = foundUserEntity.getRole().getName();
-        UserSecurityRole enumRole = UserSecurityRole.valueOf(role);
-        return new User(
-                foundUserEntity.getName(),
-                passwordEncoder.encode(foundUserEntity.getPassword()),
-                enumRole.getGrantedAuthorities()
-        );
+        UserSecurityRole enumRole = UserSecurityRole.valueOf(foundUserEntity.getRole().getName());
+        return new UserDao(
+                foundUserEntity,
+                passwordEncoder);
     }
 
     @Override
@@ -59,7 +54,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateOne(String username, String newRoleAsString, Boolean isBlocked) {
-        UserEntity actorUser = getCurrentUser(userRepository);
+        UserEntity actorUser = getCurrentUserEntity();
         UserEntity targetUser = getUserEntity(username);
         UserSecurityRole userSecurityRole = UserSecurityRole.valueOf(actorUser.getRole().getName());
 
@@ -74,7 +69,7 @@ public class UserServiceImpl implements UserService {
             ChangeRoleHistoryEntity newChangeRoleHistoryEntity =
                     new ChangeRoleHistoryEntity(actorUser, targetUser, newRoleEntity);
             changeRoleHistoryRepository.save(newChangeRoleHistoryEntity);
-            targetUser.setRole(getRoleEntity(newRole));
+            targetUser.setRole(newRoleEntity);
         }
         if (isBlocked != null
                 && !actorList.contains(targetUser)

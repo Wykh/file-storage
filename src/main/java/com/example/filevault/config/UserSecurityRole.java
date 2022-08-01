@@ -9,10 +9,10 @@ import java.util.stream.Collectors;
 import static com.example.filevault.config.UserSecurityPermission.*;
 
 public enum UserSecurityRole {
-    USER(Sets.newHashSet(FILE_READ, FILE_WRITE)),
-    MANAGER(Sets.newHashSet(FILE_READ, FILE_WRITE, CHANGE_FILE_ACCESS, BLOCK)),
-    ADMIN(Sets.newHashSet(FILE_READ, FILE_WRITE, FILE_READ_ALL, CHANGE_FILE_ACCESS, BLOCK, CHANGE_ROLE, DELETE_PUBLIC_FILE)),
-    SUPERADMIN(Sets.newHashSet(FILE_READ, FILE_WRITE, USER_READ, USER_WRITE));
+    USER(Set.of(FILE_READ, FILE_WRITE)),
+    MANAGER(Set.of(FILE_READ, FILE_WRITE, CHANGE_FILE_ACCESS, BLOCK)),
+    ADMIN(Set.of(FILE_READ, FILE_WRITE, FILE_READ_ALL, CHANGE_FILE_ACCESS, BLOCK, CHANGE_ROLE, DELETE_PUBLIC_FILE)),
+    SUPERADMIN(Set.of(FILE_READ, FILE_WRITE, USER_READ, USER_WRITE));
 
     private final Set<UserSecurityPermission> permissions;
 

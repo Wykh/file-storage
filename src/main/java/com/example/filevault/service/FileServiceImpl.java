@@ -6,7 +6,6 @@ import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
 import com.example.filevault.entity.FileEntity;
-import com.example.filevault.entity.UserEntity;
 import com.example.filevault.exception.FileNotFoundException;
 import com.example.filevault.exception.TooLargeFileSizeException;
 import com.example.filevault.repository.FileRepository;
@@ -17,9 +16,6 @@ import com.example.filevault.util.FileNameUtils;
 import com.example.filevault.util.FileSizeUtils;
 import com.example.filevault.util.FileWorkUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,7 +35,8 @@ import java.util.zip.ZipOutputStream;
 
 import static com.example.filevault.config.UserSecurityPermission.CHANGE_FILE_ACCESS;
 import static com.example.filevault.config.UserSecurityPermission.DELETE_PUBLIC_FILE;
-import static com.example.filevault.util.UserWorkUtils.getCurrentUser;
+import static com.example.filevault.util.UserWorkUtils.getCurrentUserEntity;
+import static com.example.filevault.util.UserWorkUtils.getCurrentUserRole;
 
 @Service
 @RequiredArgsConstructor
@@ -65,7 +62,7 @@ public class FileServiceImpl implements FileService {
                         .comment(passedComment)
                         .contentFolderPath(FileVaultConstants.STORAGE_LOCATION)
                         .size(file.getSize())
-                        .user(getCurrentUser(userRepository))
+                        .user(getCurrentUserEntity())
                         .isPublic(false)
                         .build()
         );
@@ -94,7 +91,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileDto getDTOById(UUID id) {
         FileEntity foundEntity = getFileEntity(id);
-        if (getCurrentUser(userRepository).equals(foundEntity.getUser()) || foundEntity.isPublic()) {
+        if (getCurrentUserEntity().equals(foundEntity.getUser()) || foundEntity.isPublic()) {
             return FileDto.of(foundEntity);
         }
         throw new RuntimeException("You have no permission to get the file"); // TODO: custom exception
@@ -103,7 +100,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileBytesAndNameById getBytesAndNameById(UUID id) {
         FileEntity foundEntity = getFileEntity(id);
-        if (getCurrentUser(userRepository).equals(foundEntity.getUser()) || foundEntity.isPublic()) {
+        if (getCurrentUserEntity().equals(foundEntity.getUser()) || foundEntity.isPublic()) {
             Path fileLocation = rootLocation.resolve(foundEntity.getId().toString() + '.' + foundEntity.getExtension());
             byte[] fileContent = FileWorkUtils.getFileContent(fileLocation);
 
@@ -137,7 +134,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileDto update(UUID id, String newFileName, String newComment, Boolean isPublic) {
         FileEntity foundEntity = getFileEntity(id);
-        if (getCurrentUser(userRepository).equals(foundEntity.getUser())) {
+        if (getCurrentUserEntity().equals(foundEntity.getUser())) {
             foundEntity.setName(newFileName);
             foundEntity.setComment(newComment);
             foundEntity.setPublic(isPublic);
@@ -153,7 +150,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileDto delete(UUID id) {
         FileEntity foundEntity = getFileEntity(id);
-        if (getCurrentUser(userRepository).equals(foundEntity.getUser()) ||
+        if (getCurrentUserEntity().equals(foundEntity.getUser()) ||
                 foundEntity.isPublic() && getCurrentUserRole().getPermissions().contains(DELETE_PUBLIC_FILE)) {
             Path fileLocation = rootLocation.resolve(
                     foundEntity.getId().toString() + '.' + foundEntity.getExtension());
@@ -172,15 +169,11 @@ public class FileServiceImpl implements FileService {
 
     private Stream<FileEntity> getFileEntityStream(FilesFilterParams filterParams) {
         return fileRepository.findAll(FileSpecification
-                .getFilteredFiles(filterParams, getCurrentUser(userRepository))).stream();
+                .getFilteredFiles(filterParams, getCurrentUserEntity())).stream();
     }
 
     private FileEntity getFileEntity(UUID id) {
         return fileRepository.findById(id)
                 .orElseThrow(() -> new FileNotFoundException("File not found :("));
-    }
-
-    private UserSecurityRole getCurrentUserRole() {
-        return UserSecurityRole.valueOf(getCurrentUser(userRepository).getRole().getName());
     }
 }
