@@ -41,7 +41,7 @@ public class FileSpecification {
             }
 
             if (userToFilter != null) {
-                UserSecurityRole userSecurityRole = UserWorkUtils.getUserSecurityRole(userToFilter.getRole().getName());
+                UserSecurityRole userSecurityRole = UserSecurityRole.valueOf(userToFilter.getRole().getName());
                 boolean haveUserPermission = userSecurityRole.getPermissions().contains(FILE_READ_ALL);
 
                 if (!haveUserPermission) {

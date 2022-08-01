@@ -22,7 +22,7 @@ import java.util.List;
 import static com.example.filevault.config.UserSecurityPermission.BLOCK;
 import static com.example.filevault.config.UserSecurityPermission.CHANGE_ROLE;
 import static com.example.filevault.config.UserSecurityRole.USER;
-import static com.example.filevault.util.UserWorkUtils.getUserSecurityRole;
+import static com.example.filevault.util.UserWorkUtils.getCurrentUser;
 
 @Service
 @RequiredArgsConstructor
@@ -32,14 +32,12 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final ChangeRoleHistoryRepository changeRoleHistoryRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CurrentUserService currentUserService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity foundUserEntity = getUserEntity(username);
-        currentUserService.setEntity(foundUserEntity);
         String role = foundUserEntity.getRole().getName();
-        UserSecurityRole enumRole = getUserSecurityRole(role);
+        UserSecurityRole enumRole = UserSecurityRole.valueOf(role);
         return new User(
                 foundUserEntity.getName(),
                 passwordEncoder.encode(foundUserEntity.getPassword()),
@@ -61,9 +59,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateOne(String username, String newRoleAsString, Boolean isBlocked) {
+        UserEntity actorUser = getCurrentUser(userRepository);
         UserEntity targetUser = getUserEntity(username);
-        UserEntity actorUser = getUserWhoSendRequest();
-        UserSecurityRole userSecurityRole = getUserSecurityRole(actorUser.getRole().getName());
+        UserSecurityRole userSecurityRole = UserSecurityRole.valueOf(actorUser.getRole().getName());
 
         List<ChangeRoleHistoryEntity> allByTarget = changeRoleHistoryRepository.findAllByTarget(actorUser);
         List<UserEntity> actorList = allByTarget.stream().map(ChangeRoleHistoryEntity::getActor).toList();
@@ -71,7 +69,7 @@ public class UserServiceImpl implements UserService {
         if (newRoleAsString != null
                 && userSecurityRole.getPermissions().contains(CHANGE_ROLE)
                 && !actorList.contains(targetUser)) {
-            UserSecurityRole newRole = getUserSecurityRole(newRoleAsString);
+            UserSecurityRole newRole = UserSecurityRole.valueOf(newRoleAsString);
             RoleEntity newRoleEntity = getRoleEntity(newRole);
             ChangeRoleHistoryEntity newChangeRoleHistoryEntity =
                     new ChangeRoleHistoryEntity(actorUser, targetUser, newRoleEntity);
@@ -95,15 +93,6 @@ public class UserServiceImpl implements UserService {
 
     private RoleEntity getRoleEntity(UserSecurityRole roleName) {
         return roleRepository.findByName(roleName.name())
-                .orElseThrow(() -> new FileNotFoundException("Role not found :("));
-    }
-
-    private UserEntity getUserWhoSendRequest() {
-        String username = ((UserDetails) SecurityContextHolder
-                .getContext().getAuthentication().getPrincipal()).getUsername();
-
-        return userRepository.findByName(username).orElseThrow(() ->
-                new UsernameNotFoundException(String.format("Username %s not found", username))
-        );
+                .orElseThrow(() -> new RuntimeException("Role not found :("));
     }
 }

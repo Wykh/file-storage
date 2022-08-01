@@ -1,6 +1,5 @@
 package com.example.filevault.service;
 
-import com.example.filevault.config.UserSecurityPermission;
 import com.example.filevault.config.UserSecurityRole;
 import com.example.filevault.constants.FileVaultConstants;
 import com.example.filevault.dto.FileBytesAndNameById;
@@ -17,7 +16,6 @@ import com.example.filevault.specification.FilesFilterParams;
 import com.example.filevault.util.FileNameUtils;
 import com.example.filevault.util.FileSizeUtils;
 import com.example.filevault.util.FileWorkUtils;
-import com.example.filevault.util.UserWorkUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,7 +28,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -38,6 +39,7 @@ import java.util.zip.ZipOutputStream;
 
 import static com.example.filevault.config.UserSecurityPermission.CHANGE_FILE_ACCESS;
 import static com.example.filevault.config.UserSecurityPermission.DELETE_PUBLIC_FILE;
+import static com.example.filevault.util.UserWorkUtils.getCurrentUser;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +48,6 @@ public class FileServiceImpl implements FileService {
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
     private final Path rootLocation = Paths.get(FileVaultConstants.STORAGE_LOCATION);
-    private final CurrentUserService currentUser;
 
     @Override
     public FileDto upload(MultipartFile file, String passedComment) {
@@ -64,7 +65,7 @@ public class FileServiceImpl implements FileService {
                         .comment(passedComment)
                         .contentFolderPath(FileVaultConstants.STORAGE_LOCATION)
                         .size(file.getSize())
-                        .user(currentUser.getEntity())
+                        .user(getCurrentUser(userRepository))
                         .isPublic(false)
                         .build()
         );
@@ -92,18 +93,23 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public FileDto getDTOById(UUID id) {
-        FileEntity foundEntity = getFileEntity(id, true);
-        return FileDto.of(foundEntity);
+        FileEntity foundEntity = getFileEntity(id);
+        if (getCurrentUser(userRepository).equals(foundEntity.getUser()) || foundEntity.isPublic()) {
+            return FileDto.of(foundEntity);
+        }
+        throw new RuntimeException("You have no permission to get the file"); // TODO: custom exception
     }
 
     @Override
     public FileBytesAndNameById getBytesAndNameById(UUID id) {
-        FileEntity foundEntity = getFileEntity(id, true);
+        FileEntity foundEntity = getFileEntity(id);
+        if (getCurrentUser(userRepository).equals(foundEntity.getUser()) || foundEntity.isPublic()) {
+            Path fileLocation = rootLocation.resolve(foundEntity.getId().toString() + '.' + foundEntity.getExtension());
+            byte[] fileContent = FileWorkUtils.getFileContent(fileLocation);
 
-        Path fileLocation = rootLocation.resolve(foundEntity.getId().toString() + '.' + foundEntity.getExtension());
-        byte[] fileContent = FileWorkUtils.getFileContent(fileLocation);
-
-        return FileBytesAndNameById.of(foundEntity, fileContent);
+            return FileBytesAndNameById.of(foundEntity, fileContent);
+        }
+        throw new RuntimeException("You have no permission to download the file"); // TODO: custom exception
     }
 
     @Override
@@ -130,56 +136,51 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public FileDto update(UUID id, String newFileName, String newComment, Boolean isPublic) {
-        FileEntity foundEntity = getFileEntity(id, false, CHANGE_FILE_ACCESS);
-
-        foundEntity.setName(newFileName);
-        foundEntity.setComment(newComment);
-        foundEntity.setPublic(isPublic);
-        return FileDto.of(fileRepository.save(foundEntity));
+        FileEntity foundEntity = getFileEntity(id);
+        if (getCurrentUser(userRepository).equals(foundEntity.getUser())) {
+            foundEntity.setName(newFileName);
+            foundEntity.setComment(newComment);
+            foundEntity.setPublic(isPublic);
+            return FileDto.of(fileRepository.save(foundEntity));
+        }
+        if (foundEntity.isPublic() && getCurrentUserRole().getPermissions().contains(CHANGE_FILE_ACCESS)) {
+            foundEntity.setPublic(isPublic);
+            return FileDto.of(fileRepository.save(foundEntity));
+        }
+        throw new RuntimeException("You have no permission to update the file"); // TODO: custom exception
     }
 
     @Override
     public FileDto delete(UUID id) {
-        FileEntity foundFileEntity = getFileEntity(id, false, DELETE_PUBLIC_FILE);
-
-        Path fileLocation = rootLocation.resolve(
-                foundFileEntity.getId().toString() + '.' + foundFileEntity.getExtension());
-        fileRepository.deleteById(id);
-        try {
-            Files.delete(fileLocation);
-        } catch (IOException e) {
-            throw new RuntimeException(e); // TODO: custom exception
+        FileEntity foundEntity = getFileEntity(id);
+        if (getCurrentUser(userRepository).equals(foundEntity.getUser()) ||
+                foundEntity.isPublic() && getCurrentUserRole().getPermissions().contains(DELETE_PUBLIC_FILE)) {
+            Path fileLocation = rootLocation.resolve(
+                    foundEntity.getId().toString() + '.' + foundEntity.getExtension());
+            fileRepository.deleteById(id);
+            try {
+                Files.delete(fileLocation);
+            } catch (IOException e) {
+                throw new RuntimeException(e); // TODO: custom exception
+            }
+            FileDto deletedDto = FileDto.of(foundEntity);
+            deletedDto.setDownloadUrl("");
+            return deletedDto;
         }
-        FileDto deletedDto = FileDto.of(foundFileEntity);
-        deletedDto.setDownloadUrl("");
-        return deletedDto;
+        throw new RuntimeException("You have no permission to delete the file"); // TODO: Custom exception
     }
 
     private Stream<FileEntity> getFileEntityStream(FilesFilterParams filterParams) {
         return fileRepository.findAll(FileSpecification
-                .getFilteredFiles(filterParams, getUserWhoSendRequest())).stream();
+                .getFilteredFiles(filterParams, getCurrentUser(userRepository))).stream();
     }
 
-    private FileEntity getFileEntity(UUID id, boolean canBePublic, UserSecurityPermission... permissions) {
-        FileEntity foundEntity = fileRepository.findById(id)
+    private FileEntity getFileEntity(UUID id) {
+        return fileRepository.findById(id)
                 .orElseThrow(() -> new FileNotFoundException("File not found :("));
-
-        UserEntity userWhoSendRequest = getUserWhoSendRequest();
-        UserSecurityRole userSecurityRole = UserWorkUtils.getUserSecurityRole(userWhoSendRequest.getRole().getName());
-        if (!(canBePublic && foundEntity.isPublic()) &&
-                Arrays.stream(permissions).noneMatch(permission
-                        -> userSecurityRole.getPermissions().contains(permission)) &&
-                !foundEntity.getUser().equals(userWhoSendRequest))
-            throw new UsernameNotFoundException("Can't get access to this file");
-        return foundEntity;
     }
 
-//    private UserEntity getUserWhoSendRequest() {
-//        String username = ((UserDetails) SecurityContextHolder
-//                .getContext().getAuthentication().getPrincipal()).getUsername();
-//
-//        return userRepository.findByName(username).orElseThrow(() ->
-//                new UsernameNotFoundException(String.format("Username %s not found", username))
-//        );
-//    }
+    private UserSecurityRole getCurrentUserRole() {
+        return UserSecurityRole.valueOf(getCurrentUser(userRepository).getRole().getName());
+    }
 }
