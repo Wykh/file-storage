@@ -46,6 +46,7 @@ public class FileServiceImpl implements FileService {
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
     private final Path rootLocation = Paths.get(FileVaultConstants.STORAGE_LOCATION);
+    private final CurrentUserService currentUser;
 
     @Override
     public FileDto upload(MultipartFile file, String passedComment) {
@@ -63,7 +64,7 @@ public class FileServiceImpl implements FileService {
                         .comment(passedComment)
                         .contentFolderPath(FileVaultConstants.STORAGE_LOCATION)
                         .size(file.getSize())
-                        .user(getUserWhoSendRequest())
+                        .user(currentUser.getEntity())
                         .isPublic(false)
                         .build()
         );
@@ -84,8 +85,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FileNameById> getNames() {
-        FilesFilterParams emptyParams = FilesFilterParams.builder().build();
-        return getFileEntityStream(emptyParams)
+        return getFileEntityStream(new FilesFilterParams())
                 .map(FileNameById::toDTO)
                 .collect(Collectors.toList());
     }
@@ -156,8 +156,8 @@ public class FileServiceImpl implements FileService {
     }
 
     private Stream<FileEntity> getFileEntityStream(FilesFilterParams filterParams) {
-        return fileRepository.findAll(FileSpecification.getFilteredFiles(filterParams,
-                getUserWhoSendRequest())).stream();
+        return fileRepository.findAll(FileSpecification
+                .getFilteredFiles(filterParams, getUserWhoSendRequest())).stream();
     }
 
     private FileEntity getFileEntity(UUID id, boolean canBePublic, UserSecurityPermission... permissions) {
@@ -174,12 +174,12 @@ public class FileServiceImpl implements FileService {
         return foundEntity;
     }
 
-    private UserEntity getUserWhoSendRequest() {
-        String username = ((UserDetails) SecurityContextHolder
-                .getContext().getAuthentication().getPrincipal()).getUsername();
-
-        return userRepository.findByName(username).orElseThrow(() ->
-                new UsernameNotFoundException(String.format("Username %s not found", username))
-        );
-    }
+//    private UserEntity getUserWhoSendRequest() {
+//        String username = ((UserDetails) SecurityContextHolder
+//                .getContext().getAuthentication().getPrincipal()).getUsername();
+//
+//        return userRepository.findByName(username).orElseThrow(() ->
+//                new UsernameNotFoundException(String.format("Username %s not found", username))
+//        );
+//    }
 }

@@ -32,10 +32,12 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final ChangeRoleHistoryRepository changeRoleHistoryRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentUserService currentUserService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity foundUserEntity = getUserEntity(username);
+        currentUserService.setEntity(foundUserEntity);
         String role = foundUserEntity.getRole().getName();
         UserSecurityRole enumRole = getUserSecurityRole(role);
         return new User(

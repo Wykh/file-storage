@@ -1,6 +1,7 @@
 package com.example.filevault.service;
 
 import com.example.filevault.dto.UserDto;
+import com.example.filevault.entity.UserEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService extends UserDetailsService {

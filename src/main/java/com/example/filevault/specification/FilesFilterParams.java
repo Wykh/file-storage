@@ -1,9 +1,7 @@
 package com.example.filevault.specification;
 
 import com.example.filevault.entity.UserEntity;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 import java.util.List;
@@ -11,6 +9,8 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class FilesFilterParams {
     String name;
     Date uploadDateFrom;
