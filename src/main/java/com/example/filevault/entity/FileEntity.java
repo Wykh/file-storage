@@ -7,6 +7,7 @@ import org.hibernate.annotations.Generated;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -37,11 +38,11 @@ public class FileEntity {
 
     @Column(nullable = false, updatable=false)
     @CreationTimestamp
-    private Date uploadDate;
+    private LocalDateTime uploadDate;
 
     @Column(nullable = false)
     @UpdateTimestamp
-    private Date modifiedDate;
+    private LocalDateTime modifiedDate;
 
     @Column(nullable = false, updatable=false)
     private String contentFolderPath;

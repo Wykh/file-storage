@@ -1,15 +1,15 @@
 CREATE TABLE file_entity
 (
-    id                  uuid                     NOT NULL DEFAULT gen_random_uuid(),
-    name                VARCHAR(255)             NOT NULL,
-    extension           VARCHAR(255)             NOT NULL,
-    comment             VARCHAR(255)             NOT NULL DEFAULT '',
-    upload_date         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_date       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    content_folder_path VARCHAR(255)             NOT NULL DEFAULT 'upload-dir',
-    size                int8                     NOT NULL,
-    user_id             uuid                     NOT NULL,
-    is_public           bool                     NOT NULL DEFAULT FALSE,
+    id                  uuid         NOT NULL DEFAULT gen_random_uuid(),
+    name                VARCHAR(255) NOT NULL,
+    extension           VARCHAR(255) NOT NULL,
+    comment             VARCHAR(255) NOT NULL DEFAULT '',
+    upload_date         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_date       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    content_folder_path VARCHAR(255) NOT NULL DEFAULT 'upload-dir',
+    size                int8         NOT NULL,
+    user_id             uuid         NOT NULL,
+    is_public           bool         NOT NULL DEFAULT FALSE,
     PRIMARY KEY (id)
 );
 

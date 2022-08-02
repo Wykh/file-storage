@@ -91,7 +91,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileDto getDTOById(UUID id) {
         FileEntity foundEntity = getFileEntity(id);
-        if (getCurrentUserEntity().equals(foundEntity.getUser()) || foundEntity.isPublic()) {
+        if (getCurrentUserEntity().getId().equals(foundEntity.getUser().getId()) || foundEntity.isPublic()) {
             return FileDto.of(foundEntity);
         }
         throw new RuntimeException("You have no permission to get the file"); // TODO: custom exception
@@ -100,7 +100,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileBytesAndNameById getBytesAndNameById(UUID id) {
         FileEntity foundEntity = getFileEntity(id);
-        if (getCurrentUserEntity().equals(foundEntity.getUser()) || foundEntity.isPublic()) {
+        if (getCurrentUserEntity().getId().equals(foundEntity.getUser().getId()) || foundEntity.isPublic()) {
             Path fileLocation = rootLocation.resolve(foundEntity.getId().toString() + '.' + foundEntity.getExtension());
             byte[] fileContent = FileWorkUtils.getFileContent(fileLocation);
 
@@ -134,7 +134,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileDto update(UUID id, String newFileName, String newComment, Boolean isPublic) {
         FileEntity foundEntity = getFileEntity(id);
-        if (getCurrentUserEntity().equals(foundEntity.getUser())) {
+        if (getCurrentUserEntity().getId().equals(foundEntity.getUser().getId())) {
             foundEntity.setName(newFileName);
             foundEntity.setComment(newComment);
             foundEntity.setPublic(isPublic);
@@ -150,7 +150,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileDto delete(UUID id) {
         FileEntity foundEntity = getFileEntity(id);
-        if (getCurrentUserEntity().equals(foundEntity.getUser()) ||
+        if (getCurrentUserEntity().getId().equals(foundEntity.getUser().getId()) ||
                 foundEntity.isPublic() && getCurrentUserRole().getPermissions().contains(DELETE_PUBLIC_FILE)) {
             Path fileLocation = rootLocation.resolve(
                     foundEntity.getId().toString() + '.' + foundEntity.getExtension());

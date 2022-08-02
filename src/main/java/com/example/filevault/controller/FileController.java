@@ -25,7 +25,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,16 +71,16 @@ public class FileController {
             String name,
             @RequestParam(required = false)
             @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT)
-            Date uploadDateFrom,
+            LocalDateTime uploadDateFrom,
             @RequestParam(required = false)
             @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT)
-            Date uploadDateTo,
+            LocalDateTime uploadDateTo,
             @RequestParam(required = false)
             @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT)
-            Date modifiedDateFrom,
+            LocalDateTime modifiedDateFrom,
             @RequestParam(required = false)
             @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT)
-            Date modifiedDateTo,
+            LocalDateTime modifiedDateTo,
             @Parameter(description = "List of extensions. For example: `png,svg,jpg`")
             @RequestParam(required = false)
             List<String> extensions) {
@@ -132,9 +132,9 @@ public class FileController {
     )
     @PutMapping("/{id}")
     public ResponseEntity<FileDto> updateOne(@PathVariable UUID id,
-                                             @RequestParam("name") String newName,
-                                             @RequestParam("comment") String newComment,
-                                             @RequestParam("isPublic") Boolean isPublic) {
+                                             @RequestParam(value = "name", required = false) String newName,
+                                             @RequestParam(value = "comment", required = false) String newComment,
+                                             @RequestParam(value = "isPublic", required = false) Boolean isPublic) {
         return ResponseEntity.ok(fileService.update(id, newName, newComment, isPublic));
     }
 

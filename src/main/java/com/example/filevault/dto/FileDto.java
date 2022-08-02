@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -13,8 +14,8 @@ import java.util.UUID;
 @Builder
 public class FileDto {
     private UUID id;
-    private Date uploadDate;
-    private Date modifiedDate;
+    private LocalDateTime uploadDate;
+    private LocalDateTime modifiedDate;
     private String extension;
     private String name;
     private Long size;
