@@ -20,7 +20,7 @@ import java.util.List;
 import static com.example.filevault.config.security.UserPermission.BLOCK;
 import static com.example.filevault.config.security.UserPermission.CHANGE_ROLE;
 import static com.example.filevault.config.security.UserRole.USER;
-import static com.example.filevault.util.UserWorkUtils.getCurrentUserEntity;
+import static com.example.filevault.util.UserWorkUtils.getCurrentUserName;
 
 @Service
 @RequiredArgsConstructor
@@ -33,10 +33,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEntity foundUserEntity = getUserEntity(username);
-        UserRole enumRole = UserRole.valueOf(foundUserEntity.getRole().getName());
         return new UserDao(
-                foundUserEntity,
+                getOne(username),
                 passwordEncoder);
     }
 
@@ -54,8 +52,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateOne(String username, String newRoleAsString, Boolean isBlocked) {
-        UserEntity actorUser = getCurrentUserEntity();
-        UserEntity targetUser = getUserEntity(username);
+        UserEntity actorUser = getOne(getCurrentUserName());
+        UserEntity targetUser = getOne(username);
         UserRole userRole = UserRole.valueOf(actorUser.getRole().getName());
 
         List<ChangeRoleHistoryEntity> allByTarget = changeRoleHistoryRepository.findAllByTarget(actorUser);
@@ -80,10 +78,11 @@ public class UserServiceImpl implements UserService {
         return UserDto.of(targetUser);
     }
 
-    private UserEntity getUserEntity(String name) {
-        return userRepository.findByName(name)
+    @Override
+    public UserEntity getOne(String username) {
+        return userRepository.findByName(username)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException(String.format("Username %s not found", name)));
+                        new UsernameNotFoundException(String.format("Username %s not found", username)));
     }
 
     private RoleEntity getRoleEntity(UserRole roleName) {

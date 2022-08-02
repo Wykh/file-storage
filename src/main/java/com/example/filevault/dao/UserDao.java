@@ -25,7 +25,8 @@ public class UserDao extends User {
 
     public UserDao(String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities, UserEntity userEntity, PasswordEncoder passwordEncoder) {
         super(userEntity.getName(),
-                passwordEncoder.encode(userEntity.getPassword()), enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
+                passwordEncoder.encode(userEntity.getPassword()),
+                enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
                 UserRole.valueOf(userEntity.getRole().getName()).getGrantedAuthorities());
         this.entity = userEntity;
         this.role = UserRole.valueOf(userEntity.getRole().getName());
