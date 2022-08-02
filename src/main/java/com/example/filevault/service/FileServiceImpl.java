@@ -1,6 +1,5 @@
 package com.example.filevault.service;
 
-import com.example.filevault.config.UserSecurityRole;
 import com.example.filevault.constants.FileVaultConstants;
 import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
@@ -33,8 +32,8 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static com.example.filevault.config.UserSecurityPermission.CHANGE_FILE_ACCESS;
-import static com.example.filevault.config.UserSecurityPermission.DELETE_PUBLIC_FILE;
+import static com.example.filevault.config.security.UserPermission.CHANGE_FILE_ACCESS;
+import static com.example.filevault.config.security.UserPermission.DELETE_PUBLIC_FILE;
 import static com.example.filevault.util.UserWorkUtils.getCurrentUserEntity;
 import static com.example.filevault.util.UserWorkUtils.getCurrentUserRole;
 

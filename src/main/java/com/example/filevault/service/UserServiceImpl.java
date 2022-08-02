@@ -1,6 +1,6 @@
 package com.example.filevault.service;
 
-import com.example.filevault.config.UserSecurityRole;
+import com.example.filevault.config.security.UserRole;
 import com.example.filevault.dao.UserDao;
 import com.example.filevault.dto.UserDto;
 import com.example.filevault.entity.ChangeRoleHistoryEntity;
@@ -17,9 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.example.filevault.config.UserSecurityPermission.BLOCK;
-import static com.example.filevault.config.UserSecurityPermission.CHANGE_ROLE;
-import static com.example.filevault.config.UserSecurityRole.USER;
+import static com.example.filevault.config.security.UserPermission.BLOCK;
+import static com.example.filevault.config.security.UserPermission.CHANGE_ROLE;
+import static com.example.filevault.config.security.UserRole.USER;
 import static com.example.filevault.util.UserWorkUtils.getCurrentUserEntity;
 
 @Service
@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity foundUserEntity = getUserEntity(username);
-        UserSecurityRole enumRole = UserSecurityRole.valueOf(foundUserEntity.getRole().getName());
+        UserRole enumRole = UserRole.valueOf(foundUserEntity.getRole().getName());
         return new UserDao(
                 foundUserEntity,
                 passwordEncoder);
@@ -56,15 +56,15 @@ public class UserServiceImpl implements UserService {
     public UserDto updateOne(String username, String newRoleAsString, Boolean isBlocked) {
         UserEntity actorUser = getCurrentUserEntity();
         UserEntity targetUser = getUserEntity(username);
-        UserSecurityRole userSecurityRole = UserSecurityRole.valueOf(actorUser.getRole().getName());
+        UserRole userRole = UserRole.valueOf(actorUser.getRole().getName());
 
         List<ChangeRoleHistoryEntity> allByTarget = changeRoleHistoryRepository.findAllByTarget(actorUser);
         List<UserEntity> actorList = allByTarget.stream().map(ChangeRoleHistoryEntity::getActor).toList();
 
         if (newRoleAsString != null
-                && userSecurityRole.getPermissions().contains(CHANGE_ROLE)
+                && userRole.getPermissions().contains(CHANGE_ROLE)
                 && !actorList.contains(targetUser)) {
-            UserSecurityRole newRole = UserSecurityRole.valueOf(newRoleAsString);
+            UserRole newRole = UserRole.valueOf(newRoleAsString);
             RoleEntity newRoleEntity = getRoleEntity(newRole);
             ChangeRoleHistoryEntity newChangeRoleHistoryEntity =
                     new ChangeRoleHistoryEntity(actorUser, targetUser, newRoleEntity);
@@ -73,7 +73,7 @@ public class UserServiceImpl implements UserService {
         }
         if (isBlocked != null
                 && !actorList.contains(targetUser)
-                && userSecurityRole.getPermissions().contains(BLOCK)) {
+                && userRole.getPermissions().contains(BLOCK)) {
             targetUser.setBlocked(isBlocked);
         }
         userRepository.save(targetUser);
@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService {
                         new UsernameNotFoundException(String.format("Username %s not found", name)));
     }
 
-    private RoleEntity getRoleEntity(UserSecurityRole roleName) {
+    private RoleEntity getRoleEntity(UserRole roleName) {
         return roleRepository.findByName(roleName.name())
                 .orElseThrow(() -> new RuntimeException("Role not found :("));
     }

@@ -1,26 +1,25 @@
-package com.example.filevault.config;
+package com.example.filevault.config.security;
 
-import com.google.common.collect.Sets;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.example.filevault.config.UserSecurityPermission.*;
+import static com.example.filevault.config.security.UserPermission.*;
 
-public enum UserSecurityRole {
+public enum UserRole {
     USER(Set.of(FILE_READ, FILE_WRITE)),
     MANAGER(Set.of(FILE_READ, FILE_WRITE, CHANGE_FILE_ACCESS, BLOCK)),
     ADMIN(Set.of(FILE_READ, FILE_WRITE, FILE_READ_ALL, CHANGE_FILE_ACCESS, BLOCK, CHANGE_ROLE, DELETE_PUBLIC_FILE)),
     SUPERADMIN(Set.of(FILE_READ, FILE_WRITE, USER_READ, USER_WRITE));
 
-    private final Set<UserSecurityPermission> permissions;
+    private final Set<UserPermission> permissions;
 
-    UserSecurityRole(Set<UserSecurityPermission> permissions) {
+    UserRole(Set<UserPermission> permissions) {
         this.permissions = permissions;
     }
 
-    public Set<UserSecurityPermission> getPermissions() {
+    public Set<UserPermission> getPermissions() {
         return permissions;
     }
 

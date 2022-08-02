@@ -1,9 +1,8 @@
 package com.example.filevault.specification;
 
-import com.example.filevault.config.UserSecurityRole;
+import com.example.filevault.config.security.UserRole;
 import com.example.filevault.entity.FileEntity;
 import com.example.filevault.entity.UserEntity;
-import com.example.filevault.util.UserWorkUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Expression;
@@ -11,7 +10,7 @@ import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.filevault.config.UserSecurityPermission.FILE_READ_ALL;
+import static com.example.filevault.config.security.UserPermission.FILE_READ_ALL;
 
 public class FileSpecification {
 
@@ -41,8 +40,8 @@ public class FileSpecification {
             }
 
             if (userToFilter != null) {
-                UserSecurityRole userSecurityRole = UserSecurityRole.valueOf(userToFilter.getRole().getName());
-                boolean haveUserPermission = userSecurityRole.getPermissions().contains(FILE_READ_ALL);
+                UserRole userRole = UserRole.valueOf(userToFilter.getRole().getName());
+                boolean haveUserPermission = userRole.getPermissions().contains(FILE_READ_ALL);
 
                 if (!haveUserPermission) {
                     Predicate belongsToUser = criteriaBuilder.equal(root.get("user"), userToFilter);
