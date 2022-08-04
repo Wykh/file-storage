@@ -1,7 +1,5 @@
 package com.example.filevault.exception;
 
-import java.io.IOException;
-
 public class CantCreateZipFileException extends RuntimeException {
     public CantCreateZipFileException(String message) {
         super(message);

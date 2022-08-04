@@ -20,8 +20,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,9 +44,16 @@ public class FileController {
             ),
             description = "Return model for uploaded file"
     )
+    @ApiResponse(
+            responseCode = "403",
+            content = @Content(
+                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                    schema = @Schema(implementation = String.class)
+            )
+    )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FileDto> uploadOne(
-            @Parameter (description = "Select file to upload using form")
+            @Parameter(description = "Select file to upload using form")
             @RequestParam("file")
             MultipartFile file,
             @RequestParam("comment")
@@ -128,6 +133,13 @@ public class FileController {
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = FileDto.class)
+            )
+    )
+    @ApiResponse(
+            responseCode = "403",
+            content = @Content(
+                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                    schema = @Schema(implementation = String.class)
             )
     )
     @PutMapping("/{id}")

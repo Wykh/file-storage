@@ -15,7 +15,7 @@ public class FileSizeUtils {
         try {
             return file.getBytes().length;
         } catch (IOException e) {
-            throw new CantReadFileContentException(".getBytes() method fails", e);
+            throw new CantReadFileContentException("Can't get file size", e);
         }
     }
 }

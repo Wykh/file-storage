@@ -6,6 +6,7 @@ import com.example.filevault.dto.UserDto;
 import com.example.filevault.entity.ChangeRoleHistoryEntity;
 import com.example.filevault.entity.RoleEntity;
 import com.example.filevault.entity.UserEntity;
+import com.example.filevault.exception.BadRoleException;
 import com.example.filevault.repository.ChangeRoleHistoryRepository;
 import com.example.filevault.repository.RoleRepository;
 import com.example.filevault.repository.UserRepository;
@@ -87,6 +88,6 @@ public class UserServiceImpl implements UserService {
 
     private RoleEntity getRoleEntity(UserRole roleName) {
         return roleRepository.findByName(roleName.name())
-                .orElseThrow(() -> new RuntimeException("Role not found :("));
+                .orElseThrow(() -> new BadRoleException("Role not found"));
     }
 }

@@ -11,12 +11,12 @@ public class FileNameUtils {
 
     private static int getLastPointIndexWithErrorChecking(String fullFileName) {
         if (Strings.isNullOrEmpty(fullFileName)) {
-            throw new EmptyFileNameException("File name is empty or null");
+            throw new EmptyFileNameException("File can't be saved. File's name is empty or null");
         }
 
         int dotIndex = fullFileName.lastIndexOf('.');
         if (dotIndex == -1 || fullFileName.length() == dotIndex + 1) {
-            throw new BadFileTypeException("Bad file type");
+            throw new BadFileTypeException("File can't be saved. Bad file type");
         }
         return dotIndex;
     }

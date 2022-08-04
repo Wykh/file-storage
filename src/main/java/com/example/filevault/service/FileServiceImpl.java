@@ -143,13 +143,17 @@ public class FileServiceImpl implements FileService {
         UserEntity currentUser = userService.getOne(getCurrentUserName());
         UserRole currentUserRole = UserRole.valueOf(currentUser.getRole().getName());
         if (currentUser.getId().equals(foundEntity.getUser().getId())) {
-            foundEntity.setName(newFileName);
-            foundEntity.setComment(newComment);
+            if (newFileName != null)
+                foundEntity.setName(newFileName);
+            if (newComment != null)
+                foundEntity.setComment(newComment);
+            if (isPublic != null)
             foundEntity.setPublic(isPublic);
             return FileDto.of(fileRepository.save(foundEntity));
         }
         if (foundEntity.isPublic() && currentUserRole.getPermissions().contains(CHANGE_FILE_ACCESS)) {
-            foundEntity.setPublic(isPublic);
+            if (isPublic != null)
+                foundEntity.setPublic(isPublic);
             return FileDto.of(fileRepository.save(foundEntity));
         }
         throw new ForbiddenException("You have no permission to update the file"); // TODO: custom exception

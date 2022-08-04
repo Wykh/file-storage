@@ -2,17 +2,13 @@ package com.example.filevault.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class WebRestControllerAdvice {
-    @ExceptionHandler({
-            CloseStreamException.class, PutNextEntryToZipException.class,
-            ReadWriteStreamException.class,
-            IncorrectFilterParamException.class,
-            EmptyGetParamException.class,
-            IncorrectDateTypeFilterParamException.class})
+    @ExceptionHandler({IncorrectFilterParamException.class})
     public ResponseEntity<String> handleWtfException(Exception e) {
         return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(e.getMessage());
     }
@@ -22,24 +18,28 @@ public class WebRestControllerAdvice {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
 
+    @ExceptionHandler({UsernameNotFoundException.class})
+    public ResponseEntity<String> handleUnauthorizedException(Exception e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+    }
+
     @ExceptionHandler({FileNotFoundException.class,
             DeletingFileNotExistsInStorageException.class})
     public ResponseEntity<String> handleFileNotFoundException(Exception e) {
         return ResponseEntity.status(HttpStatus.GONE).body(e.getMessage());
     }
 
-    @ExceptionHandler({BadFileTypeException.class, EmptyFileNameException.class, CantReadFileContentException.class})
-    public ResponseEntity<String> handleFileNotSaved(Exception e) {
-        return ResponseEntity.badRequest().body("File is not saved! Error: " + e.getMessage());
-    }
-
-    @ExceptionHandler(EmptyFileListException.class)
-    public ResponseEntity<String> handleEmptyFileListException(Exception e) {
-        return ResponseEntity.badRequest().body("Error reading all files: " + e.getMessage());
-    }
-
-    @ExceptionHandler(TooLargeFileSizeException.class)
-    public ResponseEntity<String> handleTooLargeFileSizeException(Exception e) {
+    @ExceptionHandler({BadRoleException.class,
+            TooLargeFileSizeException.class,
+            BadFileTypeException.class, EmptyFileNameException.class})
+    public ResponseEntity<String> handleBadRequestException(Exception e) {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
+
+    @ExceptionHandler({CantReadFileContentException.class,
+            CantCreateZipFileException.class})
+    public ResponseEntity<String> handleInternalServerExceptions(Exception e) {
+        return ResponseEntity.internalServerError().body(e.getMessage());
+    }
+
 }

@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -14,17 +13,21 @@ import java.util.UUID;
 @Builder
 public class FileDto {
     private UUID id;
+    private Boolean isPublic;
+    private String name;
+    private String comment;
+    private String owner;
+    private String extension;
     private LocalDateTime uploadDate;
     private LocalDateTime modifiedDate;
-    private String extension;
-    private String name;
-    private Long size;
-    private String comment;
     private String downloadUrl;
+    private Long size;
 
     public static FileDto of(FileEntity entity) {
         return FileDto.builder()
                 .id(entity.getId())
+                .owner(entity.getUser().getName())
+                .isPublic(entity.isPublic())
                 .uploadDate(entity.getUploadDate())
                 .modifiedDate(entity.getModifiedDate())
                 .extension(entity.getExtension())
