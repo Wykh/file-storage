@@ -7,10 +7,8 @@ import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
 import com.example.filevault.entity.FileEntity;
 import com.example.filevault.entity.UserEntity;
-import com.example.filevault.exception.FileNotFoundException;
-import com.example.filevault.exception.TooLargeFileSizeException;
+import com.example.filevault.exception.*;
 import com.example.filevault.repository.FileRepository;
-import com.example.filevault.specification.FileSpecification;
 import com.example.filevault.specification.FilesFilterParams;
 import com.example.filevault.util.FileNameUtils;
 import com.example.filevault.util.FileSizeUtils;
@@ -35,6 +33,7 @@ import java.util.zip.ZipOutputStream;
 
 import static com.example.filevault.config.security.UserPermission.CHANGE_FILE_ACCESS;
 import static com.example.filevault.config.security.UserPermission.DELETE_PUBLIC_FILE;
+import static com.example.filevault.specification.FileSpecification.getFilteredFiles;
 import static com.example.filevault.util.UserWorkUtils.getCurrentUserName;
 
 @Service
@@ -88,6 +87,11 @@ public class FileServiceImpl implements FileService {
                 .collect(Collectors.toList());
     }
 
+    private Stream<FileEntity> getFileEntityStream(FilesFilterParams filterParams) {
+        UserEntity currentUser = userService.getOne(getCurrentUserName());
+        return fileRepository.findAll(getFilteredFiles(filterParams, currentUser)).stream();
+    }
+
     @Override
     public FileDto getDTOById(UUID id) {
         FileEntity foundEntity = getFileEntity(id);
@@ -95,7 +99,7 @@ public class FileServiceImpl implements FileService {
         if (currentUser.getId().equals(foundEntity.getUser().getId()) || foundEntity.isPublic()) {
             return FileDto.of(foundEntity);
         }
-        throw new RuntimeException("You have no permission to get the file"); // TODO: custom exception
+        throw new ForbiddenException("You have no permission to get the file"); // TODO: custom exception
     }
 
     @Override
@@ -108,7 +112,7 @@ public class FileServiceImpl implements FileService {
 
             return FileBytesAndNameById.of(foundEntity, fileContent);
         }
-        throw new RuntimeException("You have no permission to download the file"); // TODO: custom exception
+        throw new ForbiddenException("You have no permission to download the file");
     }
 
     @Override
@@ -129,7 +133,7 @@ public class FileServiceImpl implements FileService {
             }
             return FileBytesAndNameById.of(FileVaultConstants.ZIP_ENTITY, bos.toByteArray());
         } catch (IOException e) {
-            throw new RuntimeException(e); // TODO: custom exception
+            throw new CantCreateZipFileException("Bad when creating zip file", e);
         }
     }
 
@@ -148,7 +152,7 @@ public class FileServiceImpl implements FileService {
             foundEntity.setPublic(isPublic);
             return FileDto.of(fileRepository.save(foundEntity));
         }
-        throw new RuntimeException("You have no permission to update the file"); // TODO: custom exception
+        throw new ForbiddenException("You have no permission to update the file"); // TODO: custom exception
     }
 
     @Override
@@ -164,23 +168,17 @@ public class FileServiceImpl implements FileService {
             try {
                 Files.delete(fileLocation);
             } catch (IOException e) {
-                throw new RuntimeException(e); // TODO: custom exception
+                throw new DeletingFileNotExistsInStorageException("Can't delete file because is not exists", e);
             }
             FileDto deletedDto = FileDto.of(foundEntity);
             deletedDto.setDownloadUrl("");
             return deletedDto;
         }
-        throw new RuntimeException("You have no permission to delete the file"); // TODO: Custom exception
-    }
-
-    private Stream<FileEntity> getFileEntityStream(FilesFilterParams filterParams) {
-        UserEntity currentUser = userService.getOne(getCurrentUserName());
-        return fileRepository.findAll(FileSpecification
-                .getFilteredFiles(filterParams, currentUser)).stream();
+        throw new ForbiddenException("You have no permission to delete the file");
     }
 
     private FileEntity getFileEntity(UUID id) {
         return fileRepository.findById(id)
-                .orElseThrow(() -> new FileNotFoundException("File not found :("));
+                .orElseThrow(() -> new FileNotFoundException("File was deleted or never was existed"));
     }
 }

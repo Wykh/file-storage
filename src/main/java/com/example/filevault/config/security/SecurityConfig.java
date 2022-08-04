@@ -42,8 +42,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager()))
                 .addFilterAfter(new JwtTokenVerifier(), JwtUsernameAndPasswordAuthenticationFilter.class)
-//                .httpBasic()
-//                .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/api/file/**").hasAnyAuthority(FILE_READ.getPermission())
                 .antMatchers(HttpMethod.POST, "/api/file/**").hasAnyAuthority(FILE_WRITE.getPermission())
