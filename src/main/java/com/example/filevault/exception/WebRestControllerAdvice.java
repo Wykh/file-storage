@@ -13,7 +13,8 @@ public class WebRestControllerAdvice {
         return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(e.getMessage());
     }
 
-    @ExceptionHandler({ForbiddenException.class})
+    @ExceptionHandler({ForbiddenException.class,
+            BadRoleException.class})
     public ResponseEntity<String> handleForbiddenException(Exception e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
@@ -29,8 +30,7 @@ public class WebRestControllerAdvice {
         return ResponseEntity.status(HttpStatus.GONE).body(e.getMessage());
     }
 
-    @ExceptionHandler({BadRoleException.class,
-            TooLargeFileSizeException.class,
+    @ExceptionHandler({TooLargeFileSizeException.class,
             BadFileTypeException.class, EmptyFileNameException.class})
     public ResponseEntity<String> handleBadRequestException(Exception e) {
         return ResponseEntity.badRequest().body(e.getMessage());
