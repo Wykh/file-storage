@@ -1,7 +1,7 @@
 package com.example.filevault.service;
 
 import com.example.filevault.config.security.UserRole;
-import com.example.filevault.dao.UserDao;
+import com.example.filevault.dto.UserByEntity;
 import com.example.filevault.dto.UserDto;
 import com.example.filevault.entity.ChangeRoleHistoryEntity;
 import com.example.filevault.entity.RoleEntity;
@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return new UserDao(
+        return new UserByEntity(
                 getOne(username),
                 passwordEncoder);
     }

@@ -1,4 +1,4 @@
-package com.example.filevault.dao;
+package com.example.filevault.dto;
 
 import com.example.filevault.config.security.UserRole;
 import com.example.filevault.entity.UserEntity;
@@ -10,12 +10,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Collection;
 
 @Getter
-public class UserDao extends User {
+public class UserByEntity extends User {
 
     private final UserEntity entity;
     private final UserRole role;
 
-    public UserDao(UserEntity userEntity, PasswordEncoder passwordEncoder) {
+    public UserByEntity(UserEntity userEntity, PasswordEncoder passwordEncoder) {
         super(userEntity.getName(),
                 passwordEncoder.encode(userEntity.getPassword()),
                 UserRole.valueOf(userEntity.getRole().getName()).getGrantedAuthorities());
@@ -23,7 +23,7 @@ public class UserDao extends User {
         this.role = UserRole.valueOf(userEntity.getRole().getName());
     }
 
-    public UserDao(String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities, UserEntity userEntity, PasswordEncoder passwordEncoder) {
+    public UserByEntity(String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities, UserEntity userEntity, PasswordEncoder passwordEncoder) {
         super(userEntity.getName(),
                 passwordEncoder.encode(userEntity.getPassword()),
                 enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
