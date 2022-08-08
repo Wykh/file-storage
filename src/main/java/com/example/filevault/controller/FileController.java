@@ -4,6 +4,8 @@ import com.example.filevault.constants.FileVaultConstants;
 import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
+import com.example.filevault.dto.FileUpdatableFieldsById;
+import com.example.filevault.service.FileService;
 import com.example.filevault.service.FileServiceImpl;
 import com.example.filevault.specification.FilesFilterParams;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +35,7 @@ import java.util.UUID;
 @Slf4j
 public class FileController {
 
-    public final FileServiceImpl fileService;
+    public final FileService fileService;
 
     @Tag(name = "Upload")
     @ApiResponse(
@@ -147,7 +149,8 @@ public class FileController {
                                              @RequestParam(value = "name", required = false) String newName,
                                              @RequestParam(value = "comment", required = false) String newComment,
                                              @RequestParam(value = "isPublic", required = false) Boolean isPublic) {
-        return ResponseEntity.ok(fileService.update(id, newName, newComment, isPublic));
+        FileUpdatableFieldsById fileToUpdate = new FileUpdatableFieldsById(id, newName, newComment, isPublic);
+        return ResponseEntity.ok(fileService.update(fileToUpdate));
     }
 
     @Tag(name = "Single file")

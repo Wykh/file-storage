@@ -5,6 +5,7 @@ import com.example.filevault.constants.FileVaultConstants;
 import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
+import com.example.filevault.dto.FileUpdatableFieldsById;
 import com.example.filevault.entity.FileEntity;
 import com.example.filevault.entity.UserEntity;
 import com.example.filevault.exception.*;
@@ -138,7 +139,11 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public FileDto update(UUID id, String newFileName, String newComment, Boolean isPublic) {
+    public FileDto update(FileUpdatableFieldsById fileToUpdate) {
+        UUID id = fileToUpdate.getId();
+        String newFileName = fileToUpdate.getName();
+        String newComment = fileToUpdate.getComment();
+        Boolean isPublic = fileToUpdate.getIsPublic();
         FileEntity foundEntity = getFileEntity(id);
         UserEntity currentUser = userService.getOne(getCurrentUserName());
         UserRole currentUserRole = UserRole.valueOf(currentUser.getRole().getName());
@@ -148,7 +153,7 @@ public class FileServiceImpl implements FileService {
             if (newComment != null)
                 foundEntity.setComment(newComment);
             if (isPublic != null)
-            foundEntity.setPublic(isPublic);
+                foundEntity.setPublic(isPublic);
             return FileDto.of(fileRepository.save(foundEntity));
         }
         if (foundEntity.isPublic() && currentUserRole.getPermissions().contains(CHANGE_FILE_ACCESS)) {

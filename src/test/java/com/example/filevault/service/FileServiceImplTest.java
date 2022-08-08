@@ -2,6 +2,7 @@ package com.example.filevault.service;
 
 import com.example.filevault.constants.FileVaultConstants;
 import com.example.filevault.dto.FileDto;
+import com.example.filevault.dto.FileUpdatableFieldsById;
 import com.example.filevault.entity.FileEntity;
 import com.example.filevault.exception.BadFileTypeException;
 import com.example.filevault.exception.EmptyFileNameException;
@@ -142,9 +143,10 @@ class FileServiceImplTest {
         FileDto expectedFileDto = FileDto.of(afterUpdate);
         when(fileRepository.findById(idSample)).thenReturn(Optional.of(beforeUpdate));
         when(fileRepository.save(any())).thenReturn(afterUpdate);
+        FileUpdatableFieldsById fileToUpdate = new FileUpdatableFieldsById(idSample, nameAfter, commentAfter, false);
 
         // act
-        FileDto actualFileDto = fileService.update(idSample, nameAfter, commentAfter, false);
+        FileDto actualFileDto = fileService.update(fileToUpdate);
 
         // assert
         verify(fileRepository).save(afterUpdate);

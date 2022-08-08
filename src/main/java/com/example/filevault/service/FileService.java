@@ -1,6 +1,7 @@
 package com.example.filevault.service;
 
 import com.example.filevault.dto.FileBytesAndNameById;
+import com.example.filevault.dto.FileUpdatableFieldsById;
 import com.example.filevault.specification.FilesFilterParams;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
@@ -16,7 +17,7 @@ public interface FileService {
     FileDto getDTOById(UUID id);
     FileBytesAndNameById getBytesAndNameById(UUID id);
     FileBytesAndNameById getZipBytesByIds(List<UUID> id);
-    FileDto update(UUID id, String newFileName, String newComment, Boolean isPublic);
+    FileDto update(FileUpdatableFieldsById fileToUpdate);
     FileDto delete(UUID id);
 
 }
