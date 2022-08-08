@@ -1,4 +1,4 @@
-package com.example.filevault.jwt;
+package com.example.filevault.config.jwt;
 
 import com.google.common.base.Strings;
 import io.jsonwebtoken.Claims;
@@ -23,6 +23,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class JwtTokenVerifier extends OncePerRequestFilter {
+
+    private final JwtConfig jwtConfig;
+
+    public JwtTokenVerifier(JwtConfig jwtConfig) {
+        this.jwtConfig = jwtConfig;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,

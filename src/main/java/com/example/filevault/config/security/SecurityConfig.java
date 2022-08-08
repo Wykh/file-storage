@@ -1,23 +1,21 @@
 package com.example.filevault.config.security;
 
-import com.example.filevault.jwt.JwtTokenVerifier;
-import com.example.filevault.jwt.JwtUsernameAndPasswordAuthenticationFilter;
+import com.example.filevault.config.jwt.JwtConfig;
+import com.example.filevault.config.jwt.JwtTokenVerifier;
+import com.example.filevault.config.jwt.JwtUsernameAndPasswordAuthenticationFilter;
 import com.example.filevault.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
 
 import static com.example.filevault.config.security.UserPermission.*;
 
@@ -28,11 +26,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
+    private final JwtConfig jwtConfig;
 
     @Autowired
-    public SecurityConfig(PasswordEncoder passwordEncoder, UserService userService) {
+    public SecurityConfig(PasswordEncoder passwordEncoder, UserService userService, JwtConfig jwtConfig) {
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
+        this.jwtConfig = jwtConfig;
     }
 
     @Override
@@ -40,8 +40,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager()))
-                .addFilterAfter(new JwtTokenVerifier(), JwtUsernameAndPasswordAuthenticationFilter.class)
+                .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager(), jwtConfig))
+                .addFilterAfter(new JwtTokenVerifier(jwtConfig), JwtUsernameAndPasswordAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/api/file/**").hasAnyAuthority(FILE_READ.getPermission())
                 .antMatchers(HttpMethod.POST, "/api/file/**").hasAnyAuthority(FILE_WRITE.getPermission())

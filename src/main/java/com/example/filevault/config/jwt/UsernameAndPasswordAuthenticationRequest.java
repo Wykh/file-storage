@@ -1,4 +1,4 @@
-package com.example.filevault.jwt;
+package com.example.filevault.config.jwt;
 
 import lombok.Getter;
 import lombok.Setter;
