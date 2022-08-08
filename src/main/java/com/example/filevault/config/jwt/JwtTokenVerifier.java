@@ -34,19 +34,18 @@ public class JwtTokenVerifier extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String authorizationHeader = request.getHeader("Authorization");
+        String authorizationHeader = request.getHeader(jwtConfig.getAuthorizationHeader());
 
-        if (Strings.isNullOrEmpty(authorizationHeader) || !authorizationHeader.startsWith("Bearer ")) {
+        if (Strings.isNullOrEmpty(authorizationHeader) || !authorizationHeader.startsWith(jwtConfig.getTokenPrefix())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authorizationHeader.replace("Bearer ", "");
+        String token = authorizationHeader.replace(jwtConfig.getTokenPrefix(), "");
         try {
-            String secretKey = "piskapiskahuipiskapiskapiskahuipiskapiskapiskahuipiskapiskapiskahuipiskapiskapis";
 
             Jws<Claims> claimsJws = Jwts.parser()
-                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .setSigningKey(jwtConfig.getEncodedSecretKey())
                     .parseClaimsJws(token);
 
             Claims body = claimsJws.getBody();
