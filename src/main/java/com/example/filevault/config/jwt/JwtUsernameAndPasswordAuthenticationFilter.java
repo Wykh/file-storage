@@ -20,10 +20,12 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
 
     private final AuthenticationManager authenticationManager;
     private final JwtConfig jwtConfig;
+    private final ObjectMapper objectMapper;
 
-    public JwtUsernameAndPasswordAuthenticationFilter(AuthenticationManager authenticationManager, JwtConfig jwtConfig) {
+    public JwtUsernameAndPasswordAuthenticationFilter(AuthenticationManager authenticationManager, JwtConfig jwtConfig, ObjectMapper objectMapper) {
         this.authenticationManager = authenticationManager;
         this.jwtConfig = jwtConfig;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -31,7 +33,7 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
                                                 HttpServletResponse response) throws AuthenticationException {
         try {
             UsernameAndPasswordAuthenticationRequest authenticationRequest =
-                     new ObjectMapper().readValue(request.getInputStream(), UsernameAndPasswordAuthenticationRequest.class);
+                    objectMapper.readValue(request.getInputStream(), UsernameAndPasswordAuthenticationRequest.class);
 
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     authenticationRequest.getUsername(),

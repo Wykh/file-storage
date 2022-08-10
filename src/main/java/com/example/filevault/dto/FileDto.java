@@ -1,6 +1,7 @@
 package com.example.filevault.dto;
 
 import com.example.filevault.entity.FileEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

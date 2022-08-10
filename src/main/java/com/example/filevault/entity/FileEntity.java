@@ -1,6 +1,7 @@
 package com.example.filevault.entity;
 
 import com.example.filevault.constants.FileVaultConstants;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.hibernate.annotations.*;
 import org.hibernate.annotations.Generated;

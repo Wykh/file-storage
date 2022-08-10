@@ -28,12 +28,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
     private final JwtConfig jwtConfig;
+    private final ObjectMapper objectMapper;
+
 
     @Autowired
-    public SecurityConfig(PasswordEncoder passwordEncoder, UserService userService, JwtConfig jwtConfig) {
+    public SecurityConfig(PasswordEncoder passwordEncoder, UserService userService, JwtConfig jwtConfig, ObjectMapper objectMapper) {
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.jwtConfig = jwtConfig;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -41,7 +44,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager(), jwtConfig))
+                .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager(), jwtConfig, objectMapper))
                 .addFilterAfter(new JwtTokenVerifier(jwtConfig), JwtUsernameAndPasswordAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/api/file/**").hasAnyAuthority(FILE_READ.getPermission())
