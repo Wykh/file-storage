@@ -137,13 +137,6 @@ public class FileController {
                     schema = @Schema(implementation = FileDto.class)
             )
     )
-    @ApiResponse(
-            responseCode = "403",
-            content = @Content(
-                    mediaType = MediaType.TEXT_PLAIN_VALUE,
-                    schema = @Schema(implementation = String.class)
-            )
-    )
     @PutMapping("/{id}")
     public ResponseEntity<FileDto> updateOne(@PathVariable UUID id,
                                              @RequestParam(value = "name", required = false) String newName,
