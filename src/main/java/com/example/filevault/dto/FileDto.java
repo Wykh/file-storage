@@ -1,11 +1,12 @@
 package com.example.filevault.dto;
 
 import com.example.filevault.entity.FileEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -13,17 +14,21 @@ import java.util.UUID;
 @Builder
 public class FileDto {
     private UUID id;
-    private Date uploadDate;
-    private Date modifiedDate;
-    private String extension;
+    private Boolean isPublic;
     private String name;
-    private Long size;
     private String comment;
+    private String owner;
+    private String extension;
+    private LocalDateTime uploadDate;
+    private LocalDateTime modifiedDate;
     private String downloadUrl;
+    private Long size;
 
     public static FileDto of(FileEntity entity) {
         return FileDto.builder()
                 .id(entity.getId())
+                .owner(entity.getUser().getName())
+                .isPublic(entity.isPublic())
                 .uploadDate(entity.getUploadDate())
                 .modifiedDate(entity.getModifiedDate())
                 .extension(entity.getExtension())

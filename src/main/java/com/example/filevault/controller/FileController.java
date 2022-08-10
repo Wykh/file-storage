@@ -4,7 +4,10 @@ import com.example.filevault.constants.FileVaultConstants;
 import com.example.filevault.dto.FileBytesAndNameById;
 import com.example.filevault.dto.FileDto;
 import com.example.filevault.dto.FileNameById;
-import com.example.filevault.service.DataBaseFileService;
+import com.example.filevault.dto.FileUpdatableFieldsById;
+import com.example.filevault.service.FileService;
+import com.example.filevault.service.FileServiceImpl;
+import com.example.filevault.specification.FilesFilterParams;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -22,7 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,10 +33,9 @@ import java.util.UUID;
 @RequestMapping("/api/file")
 @RequiredArgsConstructor
 @Slf4j
-//@Api(value = "Swagger2DemoRestController", description = "REST APIs related to Student Entity!!!!")
 public class FileController {
 
-    public final DataBaseFileService fileService;
+    public final FileService fileService;
 
     @Tag(name = "Upload")
     @ApiResponse(
@@ -44,9 +46,16 @@ public class FileController {
             ),
             description = "Return model for uploaded file"
     )
+    @ApiResponse(
+            responseCode = "403",
+            content = @Content(
+                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                    schema = @Schema(implementation = String.class)
+            )
+    )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FileDto> uploadOne(
-            @Parameter (description = "Select file to upload using form")
+            @Parameter(description = "Select file to upload using form")
             @RequestParam("file")
             MultipartFile file,
             @RequestParam("comment")
@@ -69,16 +78,16 @@ public class FileController {
             String name,
             @RequestParam(required = false)
             @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT)
-            Date uploadDateFrom,
+            LocalDateTime uploadDateFrom,
             @RequestParam(required = false)
             @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT)
-            Date uploadDateTo,
+            LocalDateTime uploadDateTo,
             @RequestParam(required = false)
             @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT)
-            Date modifiedDateFrom,
+            LocalDateTime modifiedDateFrom,
             @RequestParam(required = false)
             @DateTimeFormat(pattern = FileVaultConstants.DATE_FORMAT)
-            Date modifiedDateTo,
+            LocalDateTime modifiedDateTo,
             @Parameter(description = "List of extensions. For example: `png,svg,jpg`")
             @RequestParam(required = false)
             List<String> extensions) {
@@ -130,9 +139,11 @@ public class FileController {
     )
     @PutMapping("/{id}")
     public ResponseEntity<FileDto> updateOne(@PathVariable UUID id,
-                                             @RequestParam("name") String newName,
-                                             @RequestParam("comment") String newComment) {
-        return ResponseEntity.ok(fileService.update(id, newName, newComment));
+                                             @RequestParam(value = "name", required = false) String newName,
+                                             @RequestParam(value = "comment", required = false) String newComment,
+                                             @RequestParam(value = "isPublic", required = false) Boolean isPublic) {
+        FileUpdatableFieldsById fileToUpdate = new FileUpdatableFieldsById(id, newName, newComment, isPublic);
+        return ResponseEntity.ok(fileService.update(fileToUpdate));
     }
 
     @Tag(name = "Single file")
