@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -53,8 +54,8 @@ class FileServiceImplTest {
                 .name(testName)
                 .extension(testExtension)
                 .comment(testComment)
-                .modifiedDate(new Date())
-                .uploadDate(new Date())
+                .modifiedDate(LocalDateTime.now())
+                .uploadDate(LocalDateTime.now())
                 .contentFolderPath(FileVaultConstants.STORAGE_LOCATION)
                 .size(testMultipartFile.getSize())
                 .build();
@@ -125,8 +126,8 @@ class FileServiceImplTest {
                 .name(nameBefore)
                 .extension(testExtension)
                 .comment(commentBefore)
-                .modifiedDate(new Date())
-                .uploadDate(new Date())
+                .modifiedDate(LocalDateTime.now())
+                .uploadDate(LocalDateTime.now())
                 .contentFolderPath(FileVaultConstants.STORAGE_LOCATION)
                 .size(testMultipartFile.getSize())
                 .build();
@@ -135,8 +136,8 @@ class FileServiceImplTest {
                 .name(nameAfter)
                 .extension(testExtension)
                 .comment(commentAfter)
-                .modifiedDate(new Date())
-                .uploadDate(new Date())
+                .modifiedDate(LocalDateTime.now())
+                .uploadDate(LocalDateTime.now())
                 .contentFolderPath(FileVaultConstants.STORAGE_LOCATION)
                 .size(testMultipartFile.getSize())
                 .build();
@@ -176,8 +177,8 @@ class FileServiceImplTest {
                 .name(testName)
                 .extension(testExtension)
                 .comment(testComment)
-                .modifiedDate(new Date())
-                .uploadDate(new Date())
+                .modifiedDate(LocalDateTime.now())
+                .uploadDate(LocalDateTime.now())
                 .contentFolderPath(FileVaultConstants.STORAGE_LOCATION)
                 .size(testMultipartFile.getSize())
                 .build();
