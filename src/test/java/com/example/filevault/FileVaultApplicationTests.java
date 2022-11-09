@@ -15,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -22,6 +23,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 
@@ -31,6 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@Testcontainers
+@ActiveProfiles("test-containers")
 class FileVaultApplicationTests {
 
     @Autowired
@@ -47,6 +53,12 @@ class FileVaultApplicationTests {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Container
+    private PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest")
+            .withDatabaseName("filevault")
+            .withUsername("postgres")
+            .withPassword("root");
 
     @Test
     void getAllFilesViaRestTemplate() throws Exception {
@@ -98,8 +110,13 @@ class FileVaultApplicationTests {
                 .header("Authorization", token)
         );
 
+        ResultActions authorization = mockMvc.perform(get("/api/file")
+                        .header("Authorization", token))
+                .andExpect(status().isOk());
+
         System.out.println("Perform");
         System.out.println(perform.andReturn().getResponse().getContentAsString());
+        System.out.println(authorization.andReturn().getResponse().getContentAsString());
     }
 
     @Test
