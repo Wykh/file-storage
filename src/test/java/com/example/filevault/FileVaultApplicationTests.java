@@ -54,10 +54,6 @@ class FileVaultApplicationTests {
         json.put("username", "admin");
         json.put("password", "admin");
 
-        MultiValueMap<String, Object> map = new LinkedMultiValueMap<String, Object>();
-        map.add("username", "admin");
-        map.add("password", "admin");
-
         // get headers from rest template
         ResponseEntity<String> responseToToken = this.restTemplate.postForEntity("/login", json.toString(), String.class);
         HttpHeaders headers = responseToToken.getHeaders();
